@@ -44,17 +44,34 @@
         // falling boxes
         var bodies = [], body;
 
-        for ( var i = 0, l = 10; i < l; ++i ) {
+        for ( var i = 0, l = 100; i < l; ++i ) {
             body = Physics.body('circle', {
                 x: 20 * (i % 10) + 30,
                 y: 20 * Math.floor(i / 10) + 30,
                 radius: 10,
                 mass: i+1,
                 // color: "pink",
-                restitution: 0.5
+                restitution: 0.9
+            });
+
+            body.applyForce( {x: 10 * Math.random() + 30,y: - (10 * Math.random() + 20) });
+            bodies.push( body );
+        }
+
+
+        for ( var i = 0, l = 100; i < l; ++i ) {
+            body = Physics.body('rectangle', {
+                x: 20 * (i % 10) + 300,
+                y: 20 * Math.floor(i / 10) + 30,
+                width:20,
+                height:20,
+                mass: i+1,
+                // color: "pink",
+                restitution: 1
             });
 
 
+            body.applyForce( {x: 1 * Math.random() + 3,y: - (1 * Math.random() + 2) });
             bodies.push( body );
         }
 
@@ -66,7 +83,7 @@
             Physics.behavior('constant-acceleration'),
             Physics.behavior('body-impulse-response'),
             Physics.behavior('body-collision-detection'),
-            Physics.behavior('sweep-prune'),
+            // Physics.behavior('sweep-prune'),
             edgeBounce
         ]);
 
