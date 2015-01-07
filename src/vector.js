@@ -98,7 +98,6 @@
     var vectorPool = [];
     var emptyVectorSlots = [];
 
-
     var VectorManager = {
 
         initVectorPool: function () {
@@ -107,31 +106,44 @@
 
             for ( i = 0; i < 16; i++ ) {
                 index = vectorPool.push( new Vector() );
-                emptyVectorSlots.push( index - 1 );
+                // emptyVectorSlots.push( index - 1 );
             }
         },
         expandVectorPool: function () {
             var index,
                 i,
-                newLength = vectorPool.length * 2;
+                newLength = 256;
+
+            console.log( "vector expand", vectorPool.length, newLength );
 
             for ( i = vectorPool.length; i < newLength; i++ ) {
-                index = vectorPool.push( new Vector() );
-                emptyVectorSlots.push( index - 1 );
+                // index = vectorPool.push( new Vector() );
+                vectorPool.push( new Vector() );
+                // console.log( index );
+                // emptyVectorSlots.push( index - 1 );
             }
         },
         create: function ( x, y ) {
-            if ( emptyVectorSlots.length === 0 ) {
+            if ( vectorPool.length === 0 ) {
                 VectorManager.expandVectorPool();
             }
 
-            var index = emptyVectorSlots.pop();
+            // vectorCnt++;
+            // console.log(vectorCnt);
 
-            return vectorPool[ index ].set( x, y );
+            // var index = emptyVectorSlots.pop();
+
+            // if ( index > 2000 ) {
+            //     console.log( index, vectorPool.length );
+            // }
+
+            return vectorPool.pop().set( x, y );
         },
         release: function ( vector ) {
-            var index = vectorPool.push( vector );
-            emptyVectorSlots.push( index - 1 );
+            // var index = vectorPool.push( vector );
+            // emptyVectorSlots.push( index - 1 );
+            vectorPool.push( vector );
+            // vectorCnt--;
 
             vector.reset();
         },
@@ -143,6 +155,7 @@
 
     Physics.Vector = VectorManager;
     Physics.Vector.initVectorPool();
+    // window.vectorPool = vectorCnt;
 
 
 
