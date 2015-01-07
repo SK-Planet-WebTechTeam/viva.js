@@ -5,21 +5,28 @@
     };
 
     var CanvasRenderer = function ( element ) {
+        var el, parent = document.body;
         if ( typeof element === "string" ) {
-            this.el = document.getElementById( element );
+            el = document.getElementById( element );
         } else if ( isDOMElement( element ) ) {
-            this.el = element;
+            el = element;
         }
 
-        this.width = ( this.el && this.el.width ) || 600;
-        this.height = ( this.el && this.el.height ) || 500;
+        if ( el && el.tagName === "canvas" ) {
+            this.el = el;
+        } else if ( el ) {
+            parent = el;
+        }
 
-        if ( element === undefined ) {
+        this.width = ( this.el && this.el.width ) || window.innerWidth;
+        this.height = ( this.el && this.el.height ) || window.innerHeight;
+
+        if ( this.el === undefined ) {
             this.el = document.createElement( "canvas" );
             this.el.width = this.width;
             this.el.height = this.height;
 
-            document.body.appendChild( this.el );
+            parent.appendChild( this.el );
         }
 
         this.el.style.transform = "translate3d(0,0,0)";
@@ -33,7 +40,7 @@
             len = bodies.length,
             _this = this;
 
-        if ( bodies.every( function ( v ) { return _this._isInCanvas( v ); }) ) {
+        if ( bodies.some( function ( v ) { return _this._isInCanvas( v ); }) ) {
             this.ctx.clearRect( 0, 0, this.width, this.height );
         }
 
@@ -77,6 +84,7 @@
 
             // this.ctx.restore();
         }
+        this.ctx.stroke();
 
         this.ctx.beginPath();
         this.ctx.moveTo( x, y );
@@ -119,10 +127,15 @@
     };
 
     CanvasRenderer.prototype._getPosition = function ( body ) {
+            // return body.position;
         var x = Math.round( body.position.x ),
             y = Math.round( body.position.y ),
             horizontalDistance = body.radius || body.width/2,
             verticalDistance = body.radius || body.height/2;
+
+        if ( body.velocity.x === 0 && body.velocity.y === 0 ) {
+            return body.position;
+        }
 
         // adjust position
         if (x + horizontalDistance > body.world.width ) {
