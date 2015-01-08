@@ -5,15 +5,6 @@
     };
 
     ConstantAccelerationBehavior.prototype.behave = function ( body ) {
-        // TO DO : performance optimization
-        // if ( this.appliedBodies.indexOf( body ) < 0 ) {
-        //     var force = Physics.Vector.copy( this.acceleration ).scale( body.mass );
-        //     body.applyForce( force );
-        //     this.appliedBodies.push( body );
-
-        //     Physics.Vector.release( force );
-        // }
-
         return Physics.Vector.copy( this.acceleration ).scale( body.mass );
     };
 
@@ -35,7 +26,7 @@
 
         if ( norm.x !== 0 || norm.y !== 0) {
             body.velocity.mult( norm ).scale( body.cor );
-            // body._adjustVelocity();
+            body._adjustVelocity();
         }
 
         return Physics.Vector.create(); // 0,0
@@ -50,36 +41,36 @@
     BoundaryCollisionBehavior.prototype._checkCollisionType = function ( body ) {
         var x = body.position.x,
             y = body.position.y,
-            distance = body.radius;
-        if ( body.type === "circle" ) {
-            if ( x + distance >= this.boundary.right ) {
-                return "right";
-            }
-            if ( x - distance <= this.boundary.left ) {
-                return "left";
-            }
-            if ( y + distance >= this.boundary.bottom && body.velocity.y > 0 ) {
-                return "bottom";
-            }
-            if ( y - distance <= this.boundary.top ) {
-                return "top";
-            }
+            horizontalDistance = body.radius || body.width/2;
+            verticalDistance = body.radius || body.height/2;
+
+        if ( x + horizontalDistance >= this.boundary.right && body.velocity.x > 0 ) {
+            return "right";
+        }
+        if ( x - horizontalDistance <= this.boundary.left && body.velocity.x < 0 ) {
+            return "left";
+        }
+        if ( y + verticalDistance >= this.boundary.bottom && body.velocity.y > 0 ) {
+            return "bottom";
+        }
+        if ( y - verticalDistance <= this.boundary.top && body.velocity.y < 0 ) {
+            return "top";
         }
 
         return "zero";
     };
 
     BoundaryCollisionBehavior.prototype._norms = {
-        top: Physics.Vector.create( 1, 1 ),
-        left: Physics.Vector.create( 1, 1 ),
-        bottom: Physics.Vector.create( -1, -1 ),
-        right: Physics.Vector.create( -1, -1 ),
+        top: Physics.Vector.create( 1, -1 ),
+        left: Physics.Vector.create( -1, 1 ),
+        bottom: Physics.Vector.create( 1, -1 ),
+        right: Physics.Vector.create( -1, 1 ),
         zero: Physics.Vector.create( 0, 0 ),
     };
 
     var CollisionBehavior = function () {
 
-    }
+    };
 
     var Behavior = {
         ConstantAcceleration: function ( ax, ay ) {
