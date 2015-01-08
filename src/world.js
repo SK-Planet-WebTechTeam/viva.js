@@ -26,8 +26,7 @@
     World.prototype.step = function() {
         var i, body,
             now = new Date().getTime(),
-            dt = ( now - this.lastStep ) / 1000, // in seconds
-            _this = this;
+            dt = ( now - this.lastStep ) / 1000; // in seconds
 
         this.lastStep = now;
 

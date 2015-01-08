@@ -161,7 +161,7 @@
     };
 
 
-    Renderer = {
+    var Renderer = {
         canvas: function ( element ) {
             return new CanvasRenderer( element );
         }

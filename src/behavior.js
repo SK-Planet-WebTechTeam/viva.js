@@ -41,7 +41,7 @@
     BoundaryCollisionBehavior.prototype._checkCollisionType = function ( body ) {
         var x = body.position.x,
             y = body.position.y,
-            horizontalDistance = body.radius || body.width/2;
+            horizontalDistance = body.radius || body.width/2,
             verticalDistance = body.radius || body.height/2;
 
         if ( x + horizontalDistance >= this.boundary.right && body.velocity.x > 0 ) {

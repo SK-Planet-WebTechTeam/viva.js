@@ -4,8 +4,7 @@
         this.y = y || 0;
     };
 
-    Vector.prototype.add = function( vector ) {
-        // var result = new Vector( this.x, this.y );
+    Vector.prototype.add = function() {
         for ( var i = 0; i < arguments.length; i++ ) {
             this.x += arguments[ i ].x;
             this.y += arguments[ i ].y;
@@ -14,8 +13,7 @@
         return this;
     };
 
-    Vector.prototype.sub = function ( vector ) {
-        // var result = new Vector( this.x, this.y );
+    Vector.prototype.sub = function () {
         for ( var i = 0; i < arguments.length; i++ ) {
             this.x -= arguments[ i ].x;
             this.y -= arguments[ i ].y;
@@ -26,7 +24,6 @@
     };
 
     Vector.prototype.scale = function( constant ) {
-        // var result = new Vector( this.x, this.y );
         this.x *= constant;
         this.y *= constant;
 
@@ -96,7 +93,6 @@
     };
 
     var vectorPool = [];
-    var emptyVectorSlots = [];
 
     var VectorManager = {
 
@@ -106,21 +102,14 @@
 
             for ( i = 0; i < 16; i++ ) {
                 index = vectorPool.push( new Vector() );
-                // emptyVectorSlots.push( index - 1 );
             }
         },
         expandVectorPool: function () {
-            var index,
-                i,
-                newLength = 256;
-
-            console.log( "vector expand", vectorPool.length, newLength );
+            var i,
+                newLength = 200;
 
             for ( i = vectorPool.length; i < newLength; i++ ) {
-                // index = vectorPool.push( new Vector() );
                 vectorPool.push( new Vector() );
-                // console.log( index );
-                // emptyVectorSlots.push( index - 1 );
             }
         },
         create: function ( x, y ) {
@@ -128,22 +117,10 @@
                 VectorManager.expandVectorPool();
             }
 
-            // vectorCnt++;
-            // console.log(vectorCnt);
-
-            // var index = emptyVectorSlots.pop();
-
-            // if ( index > 2000 ) {
-            //     console.log( index, vectorPool.length );
-            // }
-
             return vectorPool.pop().set( x, y );
         },
         release: function ( vector ) {
-            // var index = vectorPool.push( vector );
-            // emptyVectorSlots.push( index - 1 );
             vectorPool.push( vector );
-            // vectorCnt--;
 
             vector.reset();
         },
@@ -155,7 +132,6 @@
 
     Physics.Vector = VectorManager;
     Physics.Vector.initVectorPool();
-    // window.vectorPool = vectorCnt;
 
 
 

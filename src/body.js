@@ -1,44 +1,35 @@
 
 
     var bodyPool = [];
-    var emptySlots = [];
-
 
     var BodyManager = {
 
         initPool: function () {
-            var index,
-                i;
+            var i;
 
             for ( i = 0; i < 16; i++ ) {
-                index = bodyPool.push( new body({ x: -1000, y: -1000 }) );
-                emptySlots.push( index - 1 );
+                bodyPool.push( new body({ x: -1000, y: -1000 }) );
             }
         },
         expandPool: function () {
-            var index,
-                i,
-                newLength = bodyPool.length * 2;
+            var i,
+                newLength = 32;
 
             for ( i = bodyPool.length; i < newLength; i++ ) {
-                index = bodyPool.push( new body({ x: -1000, y: -1000 }) );
-                emptySlots.push( index - 1 );
+                bodyPool.push( new body({ x: -1000, y: -1000 }) );
             }
         },
         create: function ( type, option ) {
-            if ( emptySlots.length === 0 ) {
+            if ( bodyPool.length === 0 ) {
                 BodyManager.expandPool();
             }
-            var index = emptySlots.pop();
 
             option.type = type;
-            return bodyPool[ index ]._set( option );
+            return bodyPool.pop()._set( option );
         },
         release: function ( body ) {
-            var index = bodyPool.push( body );
-            emptySlots.push( index );
-
             body._reset();
+            bodyPool.push( body );
         }
 
     };
@@ -50,8 +41,8 @@
         this.acceleration = Physics.Vector.create();
         this.prevPosition = Physics.Vector.copy( this.position );
         this.cof = option.cof;
-        this.cor = option.cor;
-        this.mass = option.mass;
+        this.cor = option.cor || 0;
+        this.mass = option.mass || 0;
         this.type = option.type; // rectangle, polygon, circle
         this.width = option.width;
         this.height = option.height;
@@ -76,14 +67,12 @@
         return this;
     };
 
-    body.prototype.do = function ( dt ) {
+    body.prototype.do = function () {
         var behaviors = this.world.behaviors,
             i = 0,
             len = behaviors.length,
             behavior,
             netF = Physics.Vector.create(),
-            x,
-            y,
             f;
 
         if ( len === 0 ) {
@@ -98,36 +87,26 @@
             Physics.Vector.release( f );
         }
 
-        // this.applyForce( netF );
-        // Physics.Vector.release( netF );
-
         return netF;
     };
 
     body.prototype.applyForce = function ( force ) {
-        // var a = force.scale( 1 / this.mass ).scale( this.world.ratio ); // unit of acceleration is m/s^2 -> convert it to pixel/s^2
-
-        // this.acceleration.add( a );
         this.externalForce.push( force );
         return this;
     };
 
-    // body.prototype.applyConstantAcceleration = function ( force ) {
-    //     var a = force.scale( 1 / this.mass ).scale( this.world.ratio ); // unit of acceleration is m/s^2 -> convert it to pixel/s^2
-    //     this.acceleration.add( a );
+    body.prototype.accelerate = function ( force ) {
+        var a = force.scale( 1 / this.mass ).scale( this.world.ratio ); // unit of acceleration is m/s^2 -> convert it to pixel/s^2
+        this.acceleration.add( a );
 
-    //     return this;
-    // };
-
-    body.prototype._resolveForce = function ( force ) {
-
-    }
+        return this;
+    };
 
     body.prototype.step = function ( dt ) {
         var oldV = Physics.Vector.copy( this.velocity ),
-            // a = Physics.Vector.copy( this.acceleration ),
             force = this.do( dt ),
             i = 0,
+            a,
             f;
 
         if ( this.externalForce.length > 0 ) {
@@ -135,12 +114,14 @@
                 f = this.externalForce.pop();
                 force.add( f );
 
-                Physics.Vector.release();
+                Physics.Vector.release( f );
             }
         }
 
         a = force.scale( 1 / this.mass ).scale( this.world.ratio );
+        // console.log( force.print() );
         // this.do( dt );
+
         Physics.Vector.release( this.prevPosition );
         this.prevPosition = Physics.Vector.copy( this.position );
 
@@ -159,7 +140,7 @@
     };
 
     body.prototype._adjustVelocity = function () {
-        if ( this.velocity.magnitude() < 1 ) {
+        if ( this.velocity.magnitude() < 10 ) {
             this.velocity.set( 0, 0 );
             this.acceleration.reset();
         }
