@@ -1,4 +1,11 @@
 
+    var isMobile = "ontouchstart" in window,
+        startEvent = isMobile ? "touchstart" : "mousedown",
+        moveEvent = isMobile ? "touchmove" : "mousemove",
+        endEvent = isMobile ? "touchend" : "mouseup";
+
+    var now = Date.now;
+
     var isArray = function (obj) {
         return Object.prototype.toString.call(obj) === "[object Array]";
     };

@@ -5,6 +5,9 @@
     };
 
     ConstantAccelerationBehavior.prototype.behave = function ( body ) {
+        if ( body.status !== BODY_STATUS.NORMAL ) {
+            return Physics.Vector.create(); // 0,0
+        }
         return Physics.Vector.copy( this.acceleration ).scale( body.mass );
     };
 

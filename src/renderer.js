@@ -40,9 +40,12 @@
             len = bodies.length,
             _this = this;
 
-        if ( bodies.some( function ( v ) { return v.isChanged(); }) ) {
+        this.ctx.strokeStyle = "#000";
+        this.ctx.lineWidth = 1;
+
+        // if ( bodies.some( function ( v ) { return v.isChanged(); }) ) {
             this.ctx.clearRect( 0, 0, this.width, this.height );
-        }
+        // }
 
         // for( i = 0; i < len; i++ ){
         //     this._clearBody( bodies[ i ] );
@@ -87,13 +90,11 @@
         }
         // this.ctx.stroke();
 
-        // this.ctx.beginPath();
-        // this.ctx.moveTo( x, y );
-        // this.ctx.lineTo( body.topPosition.x, body.topPosition.y );
-        // this.ctx.closePath();
-        // this.ctx.lineWidth = 1;
-        // this.ctx.strokeStyle = "#000";
-        // this.ctx.stroke();
+        this.ctx.beginPath();
+        this.ctx.moveTo( x, y );
+        this.ctx.lineTo( x, y - ( body.radius || body.height/2 ) );
+        this.ctx.closePath();
+        this.ctx.stroke();
     };
 
     CanvasRenderer.prototype._clearBody = function ( body ) {
@@ -136,6 +137,14 @@
         this.ctx.lineWidth = 1;
         this.ctx.strokeStyle = "#777";
         this.ctx.stroke();
+    };
+
+    CanvasRenderer.prototype.on = function ( event, callback ) {
+        this.el.addEventListener( event, callback );
+    };
+
+    CanvasRenderer.prototype.off = function ( event, functionName ) {
+        this.el.removeEventListener( event, functionName );
     };
 
     var Renderer = {

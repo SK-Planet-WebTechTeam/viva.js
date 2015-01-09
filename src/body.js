@@ -34,6 +34,13 @@
 
     };
 
+    var BODY_STATUS = {
+        "NORMAL": 1,
+        "MOVING": 2,
+        "FIXED": 3,
+        "STABLE": 4
+    };
+
     var body = function ( option ) {
         this.position = Physics.Vector.create( option.x, option.y );
         this.velocity = Physics.Vector.create();
@@ -49,12 +56,15 @@
         this.radius = option.radius;
         this.world = undefined;
         this.color = option.color;
+        this.status = BODY_STATUS.NORMAL;
 
         this.externalForce = [];
     };
 
     body.prototype.move = function( vector ) {
-        this.position.add( vector );
+        Physics.Vector.release( this.prevPosition );
+        this.prevPosition = this.position;
+        this.position = vector;
 
         return this;
     };
@@ -103,6 +113,9 @@
     };
 
     body.prototype.step = function ( dt ) {
+        if ( this.status !== BODY_STATUS.NORMAL ) {
+            return;
+        }
         var force = this.do( dt ),
             prevVelocity = Physics.Vector.copy( this.velocity ),
             i = 0,
@@ -149,6 +162,7 @@
         if ( this.velocity.magnitude() <= 20 ) {
             this.velocity.reset();
             this.acceleration.reset();
+            this.status = BODY_STATUS.STABLE;
         }
 
         return this;
@@ -181,6 +195,23 @@
         if (this.position.y - (verticalDistance) < 0 ) {
             this.position.y = ( verticalDistance );
         }
+
+        return this;
+    };
+
+    body.prototype.contains = function ( x, y ) {
+        if ( this.type === "rectangle" ) {
+            return x <= this.position.x + this.width/2 && x >= this.position.x - this.width/2 &&
+                   y <= this.position.y + this.height/2 && y >= this.position.y - this.height/2;
+        }
+
+        if ( this.type === "circle" ) {
+            return Math.pow( x - this.position.x, 2 ) + Math.pow( y - this.position.y, 2 ) <= Math.pow( this.radius, 2 );
+        }
+    };
+
+    body.prototype.setStatus = function ( status ) {
+        this.status = BODY_STATUS[ status ];
 
         return this;
     };
