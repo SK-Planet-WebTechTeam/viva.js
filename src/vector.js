@@ -74,8 +74,13 @@
     };
 
     Vector.prototype.set = function ( x, y ) {
-        if ( x === undefined || y === undefined ) {
+        if ( x === undefined && y === undefined ) {
             return this;
+        }
+
+        if ( x.constructor === Vector ) {
+            y = x.y;
+            x = x.x;
         }
 
         this.x = x || 0;
@@ -86,6 +91,10 @@
 
     Vector.prototype.isEqual = function ( vector ) {
         return this.x === vector.x && this.y === vector.y;
+    };
+
+    Vector.prototype.isZero = function () {
+        return this.x === 0 && this.y === 0;
     };
 
     Vector.prototype.print = function ( tag ) {
@@ -116,12 +125,12 @@
             if ( vectorPool.length === 0 ) {
                 VectorManager.expandVectorPool();
             }
-
+vectorcnt++;
             return vectorPool.pop().set( x, y );
         },
         release: function ( vector ) {
             vectorPool.push( vector );
-
+            vectorcnt--;
             vector.reset();
         },
         copy: function ( vector ) {
@@ -132,6 +141,8 @@
 
     Physics.Vector = VectorManager;
     Physics.Vector.initVectorPool();
+
+    window.vectorcnt = 0;
 
 
 
