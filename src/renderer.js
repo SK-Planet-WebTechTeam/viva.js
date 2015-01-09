@@ -40,7 +40,7 @@
             len = bodies.length,
             _this = this;
 
-        if ( bodies.some( function ( v ) { return _this._isInCanvas( v ); }) ) {
+        if ( bodies.some( function ( v ) { return v.isChanged(); }) ) {
             this.ctx.clearRect( 0, 0, this.width, this.height );
         }
 
@@ -54,20 +54,24 @@
     };
 
     CanvasRenderer.prototype._drawBody = function ( body ) {
-        var position = this._getPosition( body ),
+        var position = body.position,
             x = Math.round( position.x ),
             y = Math.round( position.y );
 
-        if ( !this._isInCanvas( body ) ) {
-            return;
-        }
+        // if ( !this._isInCanvas( body ) || !body.isChanged() ) {
+        //     return;
+        // }
+
+        // this._drawDebugLine(100);
 
         if ( body.type === "rectangle" ) {
             var width = body.width,
                 height = body.height;
 
             this.ctx.save();
+            this.ctx.beginPath();
             this.ctx.rect( Math.round( x - width/2 ), Math.round( y - height/2 ), width, height );
+            this.ctx.closePath();
             this.ctx.fillStyle = body.color;
             this.ctx.fill();
             this.ctx.restore();
@@ -75,24 +79,21 @@
         } else if ( body.type === "circle" ) {
             var radius = body.radius;
 
-            // this.ctx.save();
             this.ctx.beginPath();
             this.ctx.arc( x, y, radius, 0, 2 * Math.PI, false );
             this.ctx.closePath();
             this.ctx.fillStyle = body.color;
             this.ctx.fill();
-
-            // this.ctx.restore();
         }
-        this.ctx.stroke();
+        // this.ctx.stroke();
 
-        this.ctx.beginPath();
-        this.ctx.moveTo( x, y );
-        this.ctx.lineTo( body.topPosition.x, body.topPosition.y );
-        this.ctx.closePath();
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = "#000";
-        this.ctx.stroke();
+        // this.ctx.beginPath();
+        // this.ctx.moveTo( x, y );
+        // this.ctx.lineTo( body.topPosition.x, body.topPosition.y );
+        // this.ctx.closePath();
+        // this.ctx.lineWidth = 1;
+        // this.ctx.strokeStyle = "#000";
+        // this.ctx.stroke();
     };
 
     CanvasRenderer.prototype._clearBody = function ( body ) {
@@ -116,50 +117,26 @@
 
     CanvasRenderer.prototype._isInCanvas = function ( body ) {
         if ( body.type === "rectangle" ) {
-            return this.width * 2 >= body.position.x + body.width/2 &&
-                 this.height * 2 >= body.position.y + body.height/2;
+            return this.width  >= body.position.x + body.width/2 &&
+                 this.height  >= body.position.y + body.height/2;
         }
 
         if ( body.type === "circle" ) {
-            return this.width * 2 >= body.position.x + body.radius/2 &&
-                 this.height * 2 >= body.position.y + body.radius/2;
+            return this.width >= body.position.x + body.radius/2 &&
+                 this.height >= body.position.y + body.radius/2;
         }
     };
 
-    CanvasRenderer.prototype._getPosition = function ( body ) {
-            // return body.position;
-        var x = Math.round( body.position.x ),
-            y = Math.round( body.position.y ),
-            horizontalDistance = body.radius || body.width/2,
-            verticalDistance = body.radius || body.height/2;
+    CanvasRenderer.prototype._drawDebugLine = function ( y ) {
 
-        if ( body.velocity.x === 0 && body.velocity.y === 0 ) {
-            return body.position;
-        }
-
-        // adjust position
-        if (x + horizontalDistance > body.world.width ) {
-            x = Math.floor( body.world.width - horizontalDistance );
-        }
-
-        if (x - (body.radius || body.width/2) < 0) {
-            x = Math.ceil( horizontalDistance );
-        }
-
-        if (y + verticalDistance > body.world.height ) {
-            y = ( body.world.height - verticalDistance );
-        }
-
-        // if (this.position.y - (verticalDistance) < 0 ) {
-        //     console.log(1);
-        //     this.position.y = ( verticalDistance );
-        // }
-
-        body.topPosition.set( x, y - ( verticalDistance ) );
-
-        return {x: x, y: y};
+        this.ctx.beginPath();
+        this.ctx.moveTo( 0, y );
+        this.ctx.lineTo( this.width, y );
+        this.ctx.closePath();
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = "#777";
+        this.ctx.stroke();
     };
-
 
     var Renderer = {
         canvas: function ( element ) {
