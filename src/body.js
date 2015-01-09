@@ -49,14 +49,13 @@
         this.radius = option.radius;
         this.world = undefined;
         this.color = option.color;
-        this.topPosition = Physics.Vector.create( option.x, option.y - ( this.radius || this.height/2 ) );
 
         this.externalForce = [];
     };
 
     body.prototype.move = function( vector ) {
         this.position.add( vector );
-        this.topPosition.set( this.position.x, this.position.y - ( this.radius || this.height/2 ) );
+
         return this;
     };
 
@@ -67,6 +66,7 @@
         return this;
     };
 
+    // TODO: find the more proper name for this function..
     body.prototype.do = function () {
         var behaviors = this.world.behaviors,
             i = 0,
@@ -103,10 +103,11 @@
     };
 
     body.prototype.step = function ( dt ) {
-        var oldV = Physics.Vector.copy( this.velocity ),
-            force = this.do( dt ),
+        var force = this.do( dt ),
+            prevVelocity = Physics.Vector.copy( this.velocity ),
             i = 0,
-            a,
+            a = this.acceleration,
+            prevAcceleration = Physics.Vector.copy( this.acceleration ),
             f;
 
         if ( this.externalForce.length > 0 ) {
@@ -118,31 +119,67 @@
             }
         }
 
-        a = force.scale( 1 / this.mass ).scale( this.world.ratio );
-        // console.log( force.print() );
-        // this.do( dt );
+        this.prevPosition.set( this.position );
 
-        Physics.Vector.release( this.prevPosition );
-        this.prevPosition = Physics.Vector.copy( this.position );
+        /* Verlet Integration */
+        this.position.add( prevVelocity.scale( dt ) ).add( prevAcceleration.scale( Math.pow( dt, 2 ) / 2 ) );
 
-        this.velocity.add( a.scale( dt ) );
-        this.position.add( oldV.add( this.velocity ).scale( dt / 2 ) );
-        this.topPosition.add( oldV );
+        this.acceleration = force.scale( 1 / this.mass ).scale( this.world.ratio );
+        this.velocity.add( a.add( this.acceleration ).scale( dt / 2 ) );
 
-        Physics.Vector.release( oldV );
+        /* classical method */
+        // this.acceleration = force.scale( 1 / this.mass ).scale( this.world.ratio );
+        // this.velocity.add( a.scale( dt ) );
+        // this.position.add( prevVelocity.add( this.velocity ).scale( dt / 2 ) );
+
+        Physics.Vector.release( prevVelocity );
         Physics.Vector.release( a );
+        Physics.Vector.release( prevAcceleration );
 
-
-        // var p = Physics.Vector.copy( this.position );
-        // console.log( p.sub( this.prevPosition ).print() );
-        // Physics.Vector.release( p );
+        var p = Physics.Vector.copy( this.position ),
+            deltaP = p.sub( this.prevPosition ).magnitude();
+        if ( deltaP < 0.3 ) {
+            this._adjustPosition();
+        }
+        Physics.Vector.release( p );
         return this;
     };
 
     body.prototype._adjustVelocity = function () {
-        if ( this.velocity.magnitude() < 10 ) {
-            this.velocity.set( 0, 0 );
+        if ( this.velocity.magnitude() <= 20 ) {
+            this.velocity.reset();
             this.acceleration.reset();
+        }
+
+        return this;
+    };
+
+    body.prototype._adjustPosition = function () {
+        var x = Math.round( this.position.x ),
+            y = Math.round( this.position.y ),
+            horizontalDistance = this.radius || this.width/2,
+            verticalDistance = this.radius || this.height/2;
+
+        if ( this.velocity.magnitude() === 0 ) {
+            return this.position;
+        }
+
+        // adjust position
+        if (x + horizontalDistance > this.world.width ) {
+            this.position.x = Math.floor( this.world.width - horizontalDistance );
+        }
+
+        if (x - (this.radius || this.width/2) < 0) {
+            this.position.x = Math.ceil( horizontalDistance );
+        }
+
+        if (y + verticalDistance > this.world.height ) {
+            this.position.y = ( this.world.height - verticalDistance );
+            // this.prevPosition.y = this.position.y;
+        }
+
+        if (this.position.y - (verticalDistance) < 0 ) {
+            this.position.y = ( verticalDistance );
         }
 
         return this;
@@ -160,14 +197,12 @@
         this.height = option.height;
         this.radius = option.radius;
         this.color = option.color;
-        this.topPosition.set( option.x, option.y - ( this.radius || this.height/2 ) );
 
         return this;
     };
 
     body.prototype._reset = function () {
         this.position.reset();
-        this.topPosition.reset();
         this.velocity.reset();
         this.angularVelocity.reset();
         this.acceleration.reset();

@@ -20,11 +20,7 @@
     BoundaryCollisionBehavior.prototype.behave = function ( body ) {
         var norm = this._norm( body );
 
-        if ( body.velocity.x === 0 && body.velocity.y === 0 ) {
-            return Physics.Vector.create();
-        }
-
-        if ( norm.x !== 0 || norm.y !== 0) {
+        if ( !norm.isZero() ) {
             body.velocity.mult( norm ).scale( body.cor );
             body._adjustVelocity();
         }
