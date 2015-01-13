@@ -44,10 +44,11 @@
     var body = function ( option ) {
         this.position = Physics.Vector.create( option.x, option.y );
         this.velocity = Physics.Vector.create();
-        this.angularVelocity = Physics.Vector.create();
         this.acceleration = Physics.Vector.create();
         this.prevPosition = Physics.Vector.copy( this.position );
-        this.cof = option.cof;
+        this.angularVelocity = 0;
+
+        this.cof = option.cof || 0;
         this.cor = option.cor || 0;
         this.mass = option.mass || 0;
         this.angle = option.angle || 0;
@@ -154,13 +155,16 @@
         // this.velocity.add( a.scale( dt ) );
         // this.position.add( prevVelocity.add( this.velocity ).scale( dt / 2 ) );
 
+        this.angle += this.angularVelocity * dt;
+        // console.log ( this.angularVelocity );
+
         Physics.Vector.release( prevVelocity );
         Physics.Vector.release( a );
         Physics.Vector.release( prevAcceleration );
 
         var p = Physics.Vector.copy( this.position ),
             deltaP = p.sub( this.prevPosition ).magnitude();
-        if ( deltaP < 0.3 ) {
+        if ( deltaP < this.cor ) {
             this._adjustPosition();
         }
         Physics.Vector.release( p );
@@ -228,11 +232,12 @@
     body.prototype._set = function ( option ) {
         this.position.set( option.x, option.y );
         this.velocity.set( option.vx, option.vy );
-        this.angularVelocity.set( option.wx, option.wy );
-        this.cof = option.cof;
-        this.cor = option.cor;
-        this.mass = option.mass;
-        this.angle = option.angle || 0;
+
+        this.angularVelocity = option.angularVelocity || this.angularVelocity;
+        this.cof = option.cof  || this.cof;
+        this.cor = option.cor || this.cor;
+        this.mass = option.mass || this.mass;
+        this.angle = option.angle || this.angle;
 
         this.type = option.type; // rectangle, polygon, circle
         this.width = option.width;
@@ -246,9 +251,10 @@
     body.prototype._reset = function () {
         this.position.reset();
         this.velocity.reset();
-        this.angularVelocity.reset();
         this.acceleration.reset();
         this.prevPosition.reset();
+
+        this.angularVelocity = 0;
         this.cof = 0;
         this.cor = 0;
         this.mass = 0;
