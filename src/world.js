@@ -97,9 +97,8 @@
         for ( i = this.bodies.length - 1; i >= 0; i-- ) {
             body = this.bodies[ i ];
             if ( body.contains( x, y ) ) {
-                body.setStatus( "MOVING" );
+                body.setStatus( BODY_STATUS.MOVING );
                 this.movingBody = body;
-
 
                 this.renderer.on( moveEvent, this.onMove );
 
@@ -122,6 +121,11 @@
         e.stopPropagation();
 
         if ( !body ) {
+            this.lastMove = 0;
+            return;
+        }
+
+        if ( x > offset.width - ( body.radius || body.width/2 ) || y > offset.height - ( body.radius || body.height/2 ) ) {
             this.lastMove = 0;
             return;
         }
