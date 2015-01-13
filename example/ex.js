@@ -1,7 +1,8 @@
 var world = new Physics.World();
-world.setRenderer( Physics.Renderer.canvas() );
+world.setRenderer( Physics.Renderer.canvas( "testdiv" ) );
 
 world.apply( Physics.Behavior.ConstantAcceleration( 0, 9.8 ) );
+world.apply( Physics.Behavior.Collision() );
 world.apply( Physics.Behavior.BoundaryCollision( {
 	x: 0,
 	y: 0,
@@ -9,37 +10,39 @@ world.apply( Physics.Behavior.BoundaryCollision( {
 	height: world.renderer.height
 }));
 
-// world.apply( Physics.Behavior.ConstantAcceleration( 20, 0 ) );
-var body;
+var body,
+	size = 40;
 
-for ( var i = 0; i < 100; i++ ) {
-	body = Physics.Body.create( "rectangle", {
-		x: 30 * (i % 10) + 300,
-		y: 30 * Math.floor(i / 10) + 30,
-		width: 20,
-		height: 20,
-		mass: 3,
-		color: "red",
-		cor: 1
-	});
+// for ( var i = 0; i < 10; i++ ) {
+// 	body = Physics.Body.create( "rectangle", {
+// 		x: (size + 10) * (i % 10) + 330,
+// 		y: (size + 10) * Math.floor(i / 10) + 100,
+// 		width: size,
+// 		height: size,
+// 		mass: 3,
+// 		color: "skyblue",
+// 		cor: 0.9
+// 	});
 
-	world.add( body );
-	body.applyForce( Physics.Vector.create( 100 * Math.random() + 300, - (100 * Math.random() + 200) ));
-}
+// 	world.add( body );
+// 	body.applyForce( Physics.Vector.create( 100 * Math.random() + 300, - (100 * Math.random() + 200) ));
+// }
 
 
-for ( var i = 0; i < 100; i++ ) {
+for ( var i = 0; i < 10; i++ ) {
 	body = Physics.Body.create( "circle", {
-		x: 20 * (i % 10) + 30,
-		y: 20 * Math.floor(i / 10) + 30,
-		radius: 10,
+		x: (size + 10) * (i % 10) + 30,
+		y: (size + 10) * Math.floor(i / 10) + 100,
+		radius: size/2,
 		mass: 1,
+		// color: "rgb(255," + (i * 20) + ", " + (i * 20) + ")",
 		color: "pink",
-		cor: 0.9
+		cor: 0.9,
+		angle: 45 * Math.PI/180 * i
 	});
 
 	world.add( body );
-	body.applyForce( Physics.Vector.create( 1000 * Math.random() + 3000, - (1000 * Math.random() + 2000) ));
+	// body.applyForce( Physics.Vector.create( 100 * Math.random() + 300, - (100 * Math.random() + 200) ));
 }
 
-setTimeout ( world.start(), 100);
+setTimeout ( world.start(), 1000);
