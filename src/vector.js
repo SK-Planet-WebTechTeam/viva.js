@@ -148,6 +148,11 @@
             var vector;
             for ( var i = 0; i < arguments.length; i++ ) {
                 vector = arguments[ i ];
+
+                if ( !vector ) {
+                    continue;
+                }
+
                 vectorPool.push( vector );
                 vectorcnt--;
                 vector.reset();
