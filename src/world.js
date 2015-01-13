@@ -101,7 +101,7 @@
         for ( i = this.bodies.length - 1; i >= 0; i-- ) {
             body = this.bodies[ i ];
             if ( body.contains( x, y ) ) {
-                body.setStatus( BODY_STATUS.MOVING );
+                body.setStatus( "MOVING" );
                 this.movingBody = body;
 
                 this.renderer.on( moveEvent, this.onMove );
@@ -133,6 +133,8 @@
             this.lastMove = 0;
             return;
         }
+
+        body.prevPosition.set( x, y );
 
         body.move( Physics.Vector.create( x, y ) );
 
