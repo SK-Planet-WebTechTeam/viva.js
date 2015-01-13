@@ -111,23 +111,25 @@
     };
 
     CollisionBehavior.prototype._checkCollision = function ( bodyA, bodyB ) {
-        var cA = Physics.Vector.copy( bodyA.position ),
+        var cA = bodyA.position,
             cB = Physics.Vector.copy( bodyB.position ),
-            collision;
+            collision,
+            point;
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
             if( cB.sub( cA ).magnitude() <= bodyA.radius + bodyB.radius ) {
+                point = Physics.Vector.copy( cB );
 
                 collision = {
                     bodyA : bodyA,
                     bodyB : bodyB,
-                    point : cB.scale( bodyA.radius / cB.magnitude() ).add( cA )
+                    point : point.scale( bodyA.radius / cB.magnitude() ).add( cA )
                 };
 
             }
         }
-        Physics.Vector.release( cA );
-        // Physics.Vector.release( cB );
+
+        Physics.Vector.release( cB );
 
         return collision;
     };
@@ -136,6 +138,7 @@
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             point = collision.point,
+
             vab = Physics.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ),
             ma = bodyA.mass,
             mb = bodyB.mass,
@@ -145,6 +148,7 @@
             n = distance.scale( 1 / distance.magnitude() ),
             vn = vab.projection( n ),
             cor = bodyA.cor * bodyB.cor,
+            cof = bodyA.cof * bodyB.cof,
             Ia = ma * bodyA.radius * bodyA.radius,
             Ib = mb * bodyB.radius * bodyB.radius,
 
@@ -162,19 +166,19 @@
             wa = ra.scale( 1/Ia ).cross( Jna ),
             wb = rb.scale( 1/Ib ).cross( Jnb );
 
-            // console.log(J);
+        if ( Math.abs( J ) > 1 ) {
 
-        bodyA.velocity.sub( Jna.scale( 1/ma ) );
-        bodyB.velocity.add( Jnb.scale( 1/mb ) );
+            bodyA.velocity.sub( Jna.scale( 1/ma ) );
+            bodyB.velocity.add( Jnb.scale( 1/mb ) );
 
-        bodyA.angularVelocity -= wa;
-        bodyB.angularVelocity += wb;
+            bodyA.angularVelocity -= wa;
+            bodyB.angularVelocity += wb;
+        }
 
-        // console.log( wa, wb );
-
-        Physics.Vector.release( vab, vn, ra, rb, distance, raClone, rbClone, n_copy, Jna, Jnb, point );
+        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, n_copy, Jna, Jnb, point );
 
         this._adjustBodyPosition( collision );
+
     };
 
     CollisionBehavior.prototype._adjustBodyPosition = function ( collision ) {
@@ -187,10 +191,6 @@
             overlap = bodyA.radius + bodyB.radius - distance.magnitude();
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
-            if ( overlap <= 0 ) {
-                return;
-            }
-
             if( overlap > 0 ) {
                 distance.normalize().scale( overlap );
                 if ( bodyA.position.x < bodyB.position.x ) {
@@ -212,7 +212,6 @@
 
             }
         }
-
 
         Physics.Vector.release( cA );
         Physics.Vector.release( cB );
