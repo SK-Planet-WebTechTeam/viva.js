@@ -117,6 +117,10 @@
         return (tag ? tag + " :: " : "" ) + "{ x: " + this.x + ", y: " +  this.y + "}";
     };
 
+    Vector.prototype.clone = function () {
+        return Physics.Vector.copy( this );
+    };
+
     var vectorPool = [];
 
     var VectorManager = {
