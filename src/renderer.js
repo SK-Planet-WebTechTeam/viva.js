@@ -58,6 +58,9 @@
 
     CanvasRenderer.prototype._drawBody = function ( body ) {
         var position = body.position,
+            width = body.width,
+            height = body.height,
+            radius = body.radius,
             x = Math.round( position.x ),
             y = Math.round( position.y );
 
@@ -67,34 +70,35 @@
 
         // this._drawDebugLine(100);
 
-        if ( body.type === "rectangle" ) {
-            var width = body.width,
-                height = body.height;
+        this.ctx.save();
+        // translate context to center of canvas
 
-            this.ctx.save();
-            this.ctx.beginPath();
-            this.ctx.rect( Math.round( x - width/2 ), Math.round( y - height/2 ), width, height );
-            this.ctx.closePath();
-            this.ctx.fillStyle = body.color;
-            this.ctx.fill();
-            this.ctx.restore();
-
-        } else if ( body.type === "circle" ) {
-            var radius = body.radius;
-
-            this.ctx.beginPath();
-            this.ctx.arc( x, y, radius, 0, 2 * Math.PI, false );
-            this.ctx.closePath();
-            this.ctx.fillStyle = body.color;
-            this.ctx.fill();
-        }
-        // this.ctx.stroke();
+        this.ctx.translate( x, y );
+        this.ctx.rotate( body.angle );
 
         this.ctx.beginPath();
-        this.ctx.moveTo( x, y );
-        this.ctx.lineTo( x, y - ( body.radius || body.height/2 ) );
+
+        if ( body.type === "rectangle" ) {
+            this.ctx.rect ( Math.round( -width/2 ), Math.round( -height/2 ), width, height );
+
+        } else if ( body.type === "circle" ) {
+            this.ctx.arc( 0, 0, radius, 0, 2 * Math.PI, false );
+        }
+
         this.ctx.closePath();
-        this.ctx.stroke();
+        this.ctx.fillStyle = body.color;
+        this.ctx.fill();
+        // this.ctx.stroke();
+
+        // if ( body.angle ) {
+            this.ctx.beginPath();
+            this.ctx.moveTo( 0, 0 );
+            this.ctx.lineTo( 0, -( radius || height/2 ) );
+            this.ctx.closePath();
+            this.ctx.stroke();
+        // }
+
+        this.ctx.restore();
     };
 
     CanvasRenderer.prototype._clearBody = function ( body ) {

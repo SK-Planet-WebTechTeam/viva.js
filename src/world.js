@@ -36,7 +36,16 @@
             thisStep = now(),
             dt = ( thisStep - this.lastStep ) / 1000; // in seconds
 
+        // dt = 16 / 1000; // DEBUG
+
         this.lastStep = thisStep;
+
+        for ( i = 0; i < this.behaviors.length; i++ ) {
+            for ( var j = 0; j < this.bodies.length; j++ ) {
+                body = this.bodies[ j ];
+                this.behaviors[ i ].behave( body );
+            }
+        }
 
         for ( i = 0; i < this.bodies.length; i++ ) {
             body = this.bodies[ i ];

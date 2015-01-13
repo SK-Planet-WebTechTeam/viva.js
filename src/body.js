@@ -50,6 +50,8 @@
         this.cof = option.cof;
         this.cor = option.cor || 0;
         this.mass = option.mass || 0;
+        this.angle = option.angle || 0;
+
         this.type = option.type; // rectangle, polygon, circle
         this.width = option.width;
         this.height = option.height;
@@ -93,6 +95,10 @@
             behavior = behaviors[ i ];
 
             f = behavior.behave( this );
+            if ( !f ) {
+                continue;
+            }
+
             netF.add( f );
             Physics.Vector.release( f );
         }
@@ -105,10 +111,11 @@
         return this;
     };
 
-    body.prototype.accelerate = function ( force ) {
-        var a = force.scale( 1 / this.mass ).scale( this.world.ratio ); // unit of acceleration is m/s^2 -> convert it to pixel/s^2
-        this.acceleration.add( a );
-
+    body.prototype.accelerate = function ( a ) {
+        // var a = force.scale( 1 / this.mass ).scale( this.world.ratio ); // unit of acceleration is m/s^2 -> convert it to pixel/s^2
+        // console.log(a);
+        this.acceleration.add( a.scale( this.world.ratio ) );
+        Physics.Vector.release( a );
         return this;
     };
 
@@ -116,7 +123,7 @@
         if ( this.status !== BODY_STATUS.NORMAL ) {
             return;
         }
-        var force = this.do( dt ),
+        var force = Physics.Vector.create(), // this.do( dt ),
             prevVelocity = Physics.Vector.copy( this.velocity ),
             i = 0,
             a = this.acceleration,
@@ -134,11 +141,13 @@
 
         this.prevPosition.set( this.position );
 
+        // console.log( this.acceleration, force, prevAcceleration );
         /* Verlet Integration */
-        this.position.add( prevVelocity.scale( dt ) ).add( prevAcceleration.scale( Math.pow( dt, 2 ) / 2 ) );
+        this.position.add( prevVelocity.scale( dt ) ).add( prevAcceleration.scale( dt * dt / 2 ) );
 
         this.acceleration = force.scale( 1 / this.mass ).scale( this.world.ratio );
         this.velocity.add( a.add( this.acceleration ).scale( dt / 2 ) );
+
 
         /* classical method */
         // this.acceleration = force.scale( 1 / this.mass ).scale( this.world.ratio );
@@ -223,6 +232,8 @@
         this.cof = option.cof;
         this.cor = option.cor;
         this.mass = option.mass;
+        this.angle = option.angle || 0;
+
         this.type = option.type; // rectangle, polygon, circle
         this.width = option.width;
         this.height = option.height;
@@ -241,6 +252,8 @@
         this.cof = 0;
         this.cor = 0;
         this.mass = 0;
+        this.angle = 0;
+
         this.type = ""; // rectangle, polygon, circle
         this.width = 0;
         this.height = 0;

@@ -45,8 +45,22 @@
         return this;
     };
 
+    Vector.prototype.projection = function ( vector ) {
+        var dotProd = this.dot( vector ),
+            magnitude = vector.magnitude(),
+            result = Physics.Vector.copy( vector );
+
+        result.scale( dotProd / ( magnitude * magnitude ) );
+
+        return result;
+    };
+
+    Vector.prototype.normalize = function () {
+        this.scale( 1/this.magnitude() );
+    };
+
     Vector.prototype.magnitude = function () {
-        return Math.sqrt( Math.pow( this.x, 2) + Math.pow( this.y, 2) );
+        return Math.sqrt( this.x * this.x + this.y * this.y );
     };
 
     /**
@@ -128,10 +142,14 @@
 vectorcnt++;
             return vectorPool.pop().set( x, y );
         },
-        release: function ( vector ) {
-            vectorPool.push( vector );
-            vectorcnt--;
-            vector.reset();
+        release: function () {
+            var vector;
+            for ( var i = 0; i < arguments.length; i++ ) {
+                vector = arguments[ i ];
+                vectorPool.push( vector );
+                vectorcnt--;
+                vector.reset();
+            }
         },
         copy: function ( vector ) {
             return VectorManager.create( vector.x, vector.y );
