@@ -25,7 +25,6 @@
 
         if ( !norm.isZero() ) {
             body.velocity.mult( norm ).scale( body.cor );
-            body._adjustVelocity();
         }
     };
 
@@ -66,10 +65,15 @@
     };
 
     var CollisionBehavior = function () {
-
+        this.collisions = [];
     };
 
     CollisionBehavior.prototype.behave = function ( body ) {
+        this._detect( body );
+        this._collisionResponse();
+    };
+
+    CollisionBehavior.prototype._detect = function ( body ) {
         var bodies = body.world.bodies,
             len = bodies.length,
             i = 0,
@@ -81,10 +85,29 @@
             if ( body === otherBody ) {
                 continue;
             }
-            if ( collision = this._checkCollision( body, otherBody ) ){
-                this._collisionResponse( collision );
+
+            collision = this._checkCollision( body, otherBody );
+            if ( collision && !this._hasCollision( collision ) ) {
+                this.collisions.push( collision );
             }
         }
+    };
+
+    CollisionBehavior.prototype._collisionResponse = function () {
+        var len = this.collisions.length,
+            i = 0;
+
+        for ( i = 0; i < len; i++ ) {
+            this._collide( this.collisions.pop() );
+        }
+
+    };
+
+    CollisionBehavior.prototype._hasCollision = function ( collision ) {
+        return this.collisions.some( function ( v ) {
+            return ( v.bodyA === collision.bodyA && v.bodyB === collision.bodyB ) ||
+                   ( v.bodyB === collision.bodyA && v.bodyA === collision.bodyB );
+        });
     };
 
     CollisionBehavior.prototype._checkCollision = function ( bodyA, bodyB ) {
@@ -98,19 +121,18 @@
                 collision = {
                     bodyA : bodyA,
                     bodyB : bodyB,
-                    point : cB.scale( -1 * bodyA.radius / cB.magnitude() )
+                    point : cB.scale( bodyA.radius / cB.magnitude() ).add( cA )
                 };
 
-                Physics.Vector.release( cA );
-                Physics.Vector.release( cB );
-
-                return collision;
             }
         }
+        Physics.Vector.release( cA );
+        // Physics.Vector.release( cB );
+
+        return collision;
     };
 
-    CollisionBehavior.prototype._collisionResponse = function ( collision ) {
-        console.log("1", vectorcnt );
+    CollisionBehavior.prototype._collide = function ( collision ) {
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             point = collision.point,
@@ -135,32 +157,65 @@
 
             J = - (1 + cor) * vn.magnitude() / ( n.dot( n ) * ( 1/ma + 1/mb ) + n_copy.dot( Ira.add( Irb ) ) ),
 
-            na = Physics.Vector.copy( n ),
-            nb = Physics.Vector.copy( n );
+            Jna = Physics.Vector.copy( n ).scale( J ),
+            Jnb = Physics.Vector.copy( n ).scale( J ),
+            wa = ra.scale( 1/Ia ).cross( Jna ),
+            wb = rb.scale( 1/Ib ).cross( Jnb );
 
             // console.log(J);
 
-            bodyA.velocity.sub( na.scale( J/ma ) );
-            bodyB.velocity.add( nb.scale( J/mb ) );
+        bodyA.velocity.sub( Jna.scale( 1/ma ) );
+        bodyB.velocity.add( Jnb.scale( 1/mb ) );
 
-            Physics.Vector.release( vab, vn, ra, rb, distance, raClone, rbClone, n_copy, na, nb );
-            console.log("2", vectorcnt );
+        bodyA.angularVelocity -= wa;
+        bodyB.angularVelocity += wb;
 
+        // console.log( wa, wb );
+
+        Physics.Vector.release( vab, vn, ra, rb, distance, raClone, rbClone, n_copy, Jna, Jnb, point );
+
+        this._adjustBodyPosition( collision );
     };
 
     CollisionBehavior.prototype._adjustBodyPosition = function ( collision ) {
 
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
-            point = collision.point,
             cA = Physics.Vector.copy( bodyA.position ),
-            cB = Physics.Vector.copy( bodyB.position );
+            cB = Physics.Vector.copy( bodyB.position ),
+            distance = cB.sub(cA),
+            overlap = bodyA.radius + bodyB.radius - distance.magnitude();
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
-            if( cB.sub( cA ).magnitude() < bodyA.radius + bodyB.radius ) {
-                // 약간씩 밀어내야함
+            if ( overlap <= 0 ) {
+                return;
+            }
+
+            if( overlap > 0 ) {
+                distance.normalize().scale( overlap );
+                if ( bodyA.position.x < bodyB.position.x ) {
+                    bodyA.position.x -= distance.x/2;
+                    bodyB.position.x += distance.x/2;
+                } else {
+                    bodyA.position.x += distance.x/2;
+                    bodyB.position.x -= distance.x/2;
+                }
+
+
+                if ( bodyA.position.y < bodyB.position.y ) {
+                    bodyA.position.y -= distance.y/2;
+                    bodyB.position.y += distance.y/2;
+                } else {
+                    bodyA.position.y += distance.y/2;
+                    bodyB.position.y -= distance.y/2;
+                }
+
             }
         }
+
+
+        Physics.Vector.release( cA );
+        Physics.Vector.release( cB );
     };
 
     var Behavior = {
