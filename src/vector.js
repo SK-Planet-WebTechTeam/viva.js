@@ -57,6 +57,8 @@
 
     Vector.prototype.normalize = function () {
         this.scale( 1/this.magnitude() );
+
+        return this;
     };
 
     Vector.prototype.magnitude = function () {
@@ -139,7 +141,7 @@
             if ( vectorPool.length === 0 ) {
                 VectorManager.expandVectorPool();
             }
-vectorcnt++;
+            vectorcnt++;
             return vectorPool.pop().set( x, y );
         },
         release: function () {
