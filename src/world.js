@@ -93,6 +93,10 @@
             body,
             i;
 
+        if ( this.paused ) {
+            return;
+        }
+
         // Consider the later a body is added to world, the higher z-index it has.
         for ( i = this.bodies.length - 1; i >= 0; i-- ) {
             body = this.bodies[ i ];
