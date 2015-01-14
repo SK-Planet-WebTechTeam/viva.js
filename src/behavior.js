@@ -21,11 +21,17 @@
     };
 
     BoundaryCollisionBehavior.prototype.behave = function ( body ) {
-        var norm = this._norm( body );
+        var norm = this._norm( body ),
+            v = body.velocity.clone(),
+            j = -( 1 + body.cor ) * v.dot( norm ),
+            jn = norm.clone().scale( j );
 
         if ( !norm.isZero() ) {
-            body.velocity.mult( norm ).scale( body.cor );
+            body.velocity.add( jn );
+            // console.log(jn, body.position.print());
         }
+
+        Physics.Vector.release( v, jn );
     };
 
     BoundaryCollisionBehavior.prototype._norm = function ( body ) {
@@ -57,10 +63,10 @@
     };
 
     BoundaryCollisionBehavior.prototype._norms = {
-        top: Physics.Vector.create( 1, -1 ),
-        left: Physics.Vector.create( -1, 1 ),
-        bottom: Physics.Vector.create( 1, -1 ),
-        right: Physics.Vector.create( -1, 1 ),
+        top: Physics.Vector.create( 0, -1 ),
+        left: Physics.Vector.create( -1, 0 ),
+        bottom: Physics.Vector.create( 0, -1 ),
+        right: Physics.Vector.create( -1, 0 ),
         zero: Physics.Vector.create( 0, 0 ),
     };
 
@@ -139,43 +145,105 @@
             bodyB = collision.bodyB,
             point = collision.point,
 
-            vab = Physics.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ),
+            vab = Physics.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
             ma = bodyA.mass,
             mb = bodyB.mass,
-            ra = Physics.Vector.copy( point ).sub( bodyA.position ),
-            rb = Physics.Vector.copy( point ).sub( bodyB.position ),
-            distance = Physics.Vector.copy( bodyA.position ).sub( bodyB.position ),
-            n = distance.scale( 1 / distance.magnitude() ),
-            vn = vab.projection( n ),
-            cor = bodyA.cor * bodyB.cor,
-            cof = bodyA.cof * bodyB.cof,
-            Ia = ma * bodyA.radius * bodyA.radius,
-            Ib = mb * bodyB.radius * bodyB.radius,
+            ra = Physics.Vector.copy( point ).sub( bodyA.position ), // vector from center of A to point of collision
+            rb = Physics.Vector.copy( point ).sub( bodyB.position ), // vector from center of B to point of collision
+            distance = Physics.Vector.copy( bodyA.position ).sub( bodyB.position ), // vector from center point of A to center point of B
+            n = distance.scale( 1 / distance.magnitude() ), // unit normal vector
+            vn = vab.projection( n ), // relative velocity projected on normal vector
+            vt = vab.sub( vn ), // tangential velocity
+            cor = bodyA.cor * bodyB.cor, // coefficient of restitution
+            cof = bodyA.cof * bodyB.cof, // coefficient of friction
+            Ia = ma * bodyA.radius * bodyA.radius / 2, // moment of inertia
+            Ib = mb * bodyB.radius * bodyB.radius / 2,
 
             raClone = Physics.Vector.copy( ra ),
             rbClone = Physics.Vector.copy( rb ),
+            raClone2 = Physics.Vector.copy( ra ),
+            rbClone2 = Physics.Vector.copy( rb ),
 
             Ira = raClone.scale( raClone.cross( n ) / Ia ),
             Irb = rbClone.scale( rbClone.cross( n ) / Ib ),
             n_copy = Physics.Vector.copy( n ),
 
-            J = - (1 + cor) * vn.magnitude() / ( n.dot( n ) * ( 1/ma + 1/mb ) + n_copy.dot( Ira.add( Irb ) ) ),
+            J = - (1 + cor) * vn.magnitude() / ( n.dot( n ) * ( 1/ma + 1/mb ) + n_copy.dot( Ira.add( Irb ) ) ), // impulse
 
             Jna = Physics.Vector.copy( n ).scale( J ),
             Jnb = Physics.Vector.copy( n ).scale( J ),
-            wa = ra.scale( 1/Ia ).cross( Jna ),
+            wa = ra.scale( 1/Ia ).cross( Jna ), // angular velocity change
             wb = rb.scale( 1/Ib ).cross( Jnb );
 
-        if ( Math.abs( J ) > 1 ) {
 
-            bodyA.velocity.sub( Jna.scale( 1/ma ) );
-            bodyB.velocity.add( Jnb.scale( 1/mb ) );
+        bodyA.velocity.sub( Jna.scale( 1/ma ) );
+        bodyB.velocity.add( Jnb.scale( 1/mb ) );
 
-            bodyA.angularVelocity -= wa;
-            bodyB.angularVelocity += wb;
+        bodyA.angularVelocity -= wa;
+        bodyB.angularVelocity += wb;
+
+        // if(|Vrt| > u*J) //Dynamic friction
+        // Jt = -u*J;
+        // else //Static friction
+        // Jt = -|Vrt|;
+
+        // Jt = Jt/{1/m1 + 1/m2 + n . [(r1 x t)/I1] x r1 + n . [(r2 x t)/I2] x r2}
+
+        // Jt - The scalar friction impulse
+        // Vrt - The tangent component of the relative velocity
+        // m1 - The mass of rigid body 1
+        // m2 - The mass of rigid body 2
+        // t - The tangent normal of the collision
+        // r1 - The vector from the center of mass of rigid body 1 to the point of collision
+        // r2 - The vector from the center of mass of rigid body 2 to the point of collision
+        // I1 - Inertia tensor for rigid body 1
+        // I2 - Inertia tensor for rigid body 2
+
+        // Then you apply the friction impulse similar to the frictionless impulse.
+
+        // v1 = v1 + (Jtt)/m1
+        // v2 = v2 + (-Jtn)/m2
+        // w1 = w1 + (r1 x Jtt)/I1
+        // w2 = w2 + (r2 x -Jtt)/I2
+
+        // v1 - Velocity of rigid body 1
+        // v2 - Velocity of rigid body 2
+        // w1 - Angular velocity of rigid body 1
+        // w2 - Angular velocity of rigid body 2
+
+        // This gives results that are really close to what I want, although there is one outstanding issue. The friction impulse will not apply to rotation around the relative contact point vector. This happens because of how the relative velocity is calculated. For example, if I have sphere spinning along the Y Axis on the ground then it will continue to spin forever.
+
+        // Either this means that the above equation is wrong, or I just need to handle the friction for the rotation around the relative contact point separately (which is a simple task). As you can see below the cross product will basically cancel out any rotation along the axis created by the relative contact point.
+
+        // Vr = (v1 + r1 x w1) - (v2 + r2 x w2)
+
+        // Vr - The relative contact velocity
+
+        var Jt,
+            fn = vt.clone().scale( -1 / vt.magnitude() );
+        if ( vt.magnitude() > cof * J ) {
+            // var fn = vt.clone().scale( -1 / vt.magnitude() ),
+            //     denom = 1 / ma + 1/Ia * ra
+            Jt =  -cof * J;
+        } else {
+            Jt = -vt.magnitude();
         }
 
-        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, n_copy, Jna, Jnb, point );
+        Jt = Jt / ( (1/ma + 1/mb) + n.dot( raClone2.scale( raClone2.cross( fn )/Ia ) ) + n.dot( rbClone2.scale( rbClone2.cross( fn )/Ib ) ) );
+
+        var Jta = fn.clone().scale( Jt ),
+            Jtb = fn.clone().scale( Jt ),
+            wta = ra.cross( Jta ), // angular velocity change
+            wtb = rb.cross( Jtb );
+
+
+        bodyA.velocity.sub( Jta.scale( 1/ma ) );
+        bodyB.velocity.add( Jtb.scale( 1/mb ) );
+
+        bodyA.angularVelocity -= wta;
+        bodyB.angularVelocity += wtb;
+
+        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, n_copy, Jna, Jnb, point /*, fn, raClone2, rbClone2, Jta, Jtb */ );
 
         this._adjustBodyPosition( collision );
 
@@ -201,7 +269,6 @@
                     bodyB.position.x -= distance.x/2;
                 }
 
-
                 if ( bodyA.position.y < bodyB.position.y ) {
                     bodyA.position.y -= distance.y/2;
                     bodyB.position.y += distance.y/2;
@@ -209,7 +276,6 @@
                     bodyA.position.y += distance.y/2;
                     bodyB.position.y -= distance.y/2;
                 }
-
             }
         }
 
