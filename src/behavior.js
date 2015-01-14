@@ -28,7 +28,7 @@
 
         if ( !norm.isZero() ) {
             body.velocity.add( jn );
-            // console.log(jn, body.position.print());
+            // console.log(jn);
         }
 
         Physics.Vector.release( v, jn );
@@ -243,7 +243,7 @@
         bodyA.angularVelocity -= wta;
         bodyB.angularVelocity += wtb;
 
-        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, n_copy, Jna, Jnb, point /*, fn, raClone2, rbClone2, Jta, Jtb */ );
+        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point /*, fn,  Jta, Jtb */ );
 
         this._adjustBodyPosition( collision );
 
