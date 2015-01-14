@@ -72,10 +72,7 @@
         //     return;
         // }
 
-        // this._drawDebugLine(100);
-
         this.ctx.save();
-        // translate context to center of canvas
 
         this.ctx.translate( x, y );
         this.ctx.rotate( body.angle );
@@ -134,17 +131,6 @@
             return this.width >= body.position.x + body.radius/2 &&
                  this.height >= body.position.y + body.radius/2;
         }
-    };
-
-    CanvasRenderer.prototype._drawDebugLine = function ( y ) {
-
-        this.ctx.beginPath();
-        this.ctx.moveTo( 0, y );
-        this.ctx.lineTo( this.width, y );
-        this.ctx.closePath();
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = "#777";
-        this.ctx.stroke();
     };
 
     CanvasRenderer.prototype.on = function ( event, callback ) {
