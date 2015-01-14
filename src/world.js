@@ -18,6 +18,7 @@
     };
 
     World.prototype.init = function () {
+
     };
 
     World.prototype.start = function () {
@@ -35,8 +36,6 @@
         var i, body,
             thisStep = now(),
             dt = ( thisStep - this.lastStep ) / 1000; // in seconds
-
-        // dt = 16 / 1000; // DEBUG
 
         this.lastStep = thisStep;
 
@@ -105,11 +104,11 @@
                 this.movingBody = body;
 
                 this.renderer.on( moveEvent, this.onMove );
+                this.renderer.on( endEvent, this.onEnd );
 
                 return;
             }
         }
-
     };
 
     World.prototype._onMove = function ( e ) {
@@ -129,25 +128,47 @@
             return;
         }
 
-        if ( x > offset.width - ( body.radius || body.width/2 ) || y > offset.height - ( body.radius || body.height/2 ) ) {
+        if ( !this._isMovable( body, x, y ) ) {
             this.lastMove = 0;
             return;
         }
 
         body.prevPosition.set( x, y );
-
         body.move( Physics.Vector.create( x, y ) );
-
         velocity = Physics.Vector.copy( body.position ).sub( body.prevPosition ).scale( 1000 / dt );
 
         Physics.Vector.release( body.velocity );
         body.velocity = velocity;
 
         this.lastMove = moveTime;
-        this.renderer.on( endEvent, this.onEnd );
+    };
+
+    World.prototype._isMovable = function ( body, x, y ) {
+        var horizontalDistance = body.radius || body.width/2,
+            verticalDistance = body.radius || body.height/2,
+            boundary = this.renderer.el.getBoundingClientRect();
+
+        if ( x + horizontalDistance >= boundary.left + boundary.width ) {
+            return false;
+        }
+        if ( x - horizontalDistance <= boundary.left  ) {
+            return false;
+        }
+        if ( y + verticalDistance >= boundary.top + boundary.height ) {
+            return false;
+        }
+        if ( y - verticalDistance <= boundary.top ) {
+            return false;
+        }
+
+        return true;
     };
 
     World.prototype._onEnd = function () {
+        if ( now() - this.lastMove > 200 ) {
+            this.movingBody.velocity.set( 0, 0 );
+        }
+
         this.movingBody.setStatus( "NORMAL" );
         this.movingBody = null;
         this.renderer.off( moveEvent, this.onMove );
