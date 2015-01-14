@@ -45,7 +45,7 @@
         this.position = Physics.Vector.create( option.x, option.y );
         this.velocity = Physics.Vector.create();
         this.acceleration = Physics.Vector.create();
-        this.prevPosition = Physics.Vector.copy( this.position );
+        this.prevPosition = Physics.Vector.create();
         this.angularVelocity = 0;
 
         this.cof = option.cof || 0;
@@ -113,10 +113,10 @@
     };
 
     body.prototype.accelerate = function ( a ) {
-        // var a = force.scale( 1 / this.mass ).scale( this.world.ratio ); // unit of acceleration is m/s^2 -> convert it to pixel/s^2
-        // console.log(a);
+
         this.acceleration.add( a.scale( this.world.ratio ) );
         Physics.Vector.release( a );
+
         return this;
     };
 
@@ -142,12 +142,11 @@
 
         this.prevPosition.set( this.position );
 
-        // console.log( this.acceleration, force, prevAcceleration );
         /* Verlet Integration */
         this.position.add( prevVelocity.scale( dt ) ).add( prevAcceleration.scale( dt * dt / 2 ) );
 
         this.acceleration = force.scale( 1 / this.mass ).scale( this.world.ratio );
-        this.velocity.add( a.add( this.acceleration ).scale( dt / 2 ) );
+        this.velocity.add( a.add( this.acceleration ).scale( dt ) );
 
 
         /* classical method */
@@ -155,7 +154,7 @@
         // this.velocity.add( a.scale( dt ) );
         // this.position.add( prevVelocity.add( this.velocity ).scale( dt / 2 ) );
 
-        this.angle += this.angularVelocity * dt;
+        // this.angle += this.angularVelocity * dt;
         // console.log ( this.angularVelocity );
 
         Physics.Vector.release( prevVelocity );
@@ -164,9 +163,11 @@
 
         var p = Physics.Vector.copy( this.position ),
             deltaP = p.sub( this.prevPosition ).magnitude();
-        if ( deltaP < this.cor ) {
+
+        if ( deltaP < 1 ) {
             this._adjustPosition();
         }
+
         Physics.Vector.release( p );
         return this;
     };
