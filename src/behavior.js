@@ -126,6 +126,10 @@
             if( cB.sub( cA ).magnitude() <= bodyA.radius + bodyB.radius ) {
                 point = Physics.Vector.copy( cB );
 
+                if ( cB.magnitude() === 0 ) {
+                    return;
+                }
+
                 collision = {
                     bodyA : bodyA,
                     bodyB : bodyB,
@@ -219,29 +223,29 @@
 
         // Vr - The relative contact velocity
 
-        var Jt,
-            fn = vt.clone().scale( -1 / vt.magnitude() );
-        if ( vt.magnitude() > cof * J ) {
-            // var fn = vt.clone().scale( -1 / vt.magnitude() ),
-            //     denom = 1 / ma + 1/Ia * ra
-            Jt =  -cof * J;
-        } else {
-            Jt = -vt.magnitude();
-        }
+        // var Jt,
+        //     fn = vt.clone().scale( -1 / vt.magnitude() );
+        // if ( vt.magnitude() > cof * J ) {
+        //     // var fn = vt.clone().scale( -1 / vt.magnitude() ),
+        //     //     denom = 1 / ma + 1/Ia * ra
+        //     Jt =  -cof * J;
+        // } else {
+        //     Jt = -vt.magnitude();
+        // }
 
-        Jt = Jt / ( (1/ma + 1/mb) + n.dot( raClone2.scale( raClone2.cross( fn )/Ia ) ) + n.dot( rbClone2.scale( rbClone2.cross( fn )/Ib ) ) );
+        // Jt = Jt / ( (1/ma + 1/mb) + n.dot( raClone2.scale( raClone2.cross( fn )/Ia ) ) + n.dot( rbClone2.scale( rbClone2.cross( fn )/Ib ) ) );
 
-        var Jta = fn.clone().scale( Jt ),
-            Jtb = fn.clone().scale( Jt ),
-            wta = ra.cross( Jta ), // angular velocity change
-            wtb = rb.cross( Jtb );
+        // var Jta = fn.clone().scale( Jt ),
+        //     Jtb = fn.clone().scale( Jt ),
+        //     wta = ra.cross( Jta ), // angular velocity change
+        //     wtb = rb.cross( Jtb );
 
 
-        bodyA.velocity.sub( Jta.scale( 1/ma ) );
-        bodyB.velocity.add( Jtb.scale( 1/mb ) );
+        // bodyA.velocity.sub( Jta.scale( 1/ma ) );
+        // bodyB.velocity.add( Jtb.scale( 1/mb ) );
 
-        bodyA.angularVelocity -= wta;
-        bodyB.angularVelocity += wtb;
+        // bodyA.angularVelocity -= wta;
+        // bodyB.angularVelocity += wtb;
 
         Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point /*, fn,  Jta, Jtb */ );
 
