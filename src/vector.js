@@ -163,7 +163,11 @@
             }
         },
         copy: function ( vector ) {
-            return VectorManager.create( vector.x, vector.y );
+            if ( vectorPool.length === 0 ) {
+                VectorManager.expandVectorPool();
+            }
+            vectorcnt++;
+            return vectorPool.pop().set( vector.x, vector.y );
         }
     };
 
