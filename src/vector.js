@@ -55,6 +55,14 @@
         return result;
     };
 
+    Vector.prototype.angleBetween = function ( vector ) {
+        if ( this.isZero() || vector.isZero() ) {
+            return 0;
+        }
+        return Math.acos( this.dot( vector ) / ( this.magnitude() * vector.magnitude() ) );
+    };
+
+
     Vector.prototype.normalize = function () {
         this.scale( 1/this.magnitude() );
 
