@@ -148,43 +148,27 @@
         this.acceleration = force.scale( 1 / this.mass ).scale( this.world.ratio );
         this.velocity.add( a.add( this.acceleration ).scale( dt ) );
 
+        // console.log( this.velocity.print() )
+
 
         /* classical method */
         // this.acceleration = force.scale( 1 / this.mass ).scale( this.world.ratio );
         // this.velocity.add( a.scale( dt ) );
         // this.position.add( prevVelocity.add( this.velocity ).scale( dt / 2 ) );
 
-        // this.angle += this.angularVelocity * dt;
+        this.angle += this.angularVelocity * dt;
         // console.log ( this.angularVelocity );
 
         Physics.Vector.release( prevVelocity );
         Physics.Vector.release( a );
         Physics.Vector.release( prevAcceleration );
 
-        var p = Physics.Vector.copy( this.position ),
-            deltaP = p.sub( this.prevPosition ).magnitude();
-
-        if ( deltaP < 1 ) {
-            this._adjustPosition();
-        }
-
-        Physics.Vector.release( p );
-        return this;
-    };
-
-    body.prototype._adjustVelocity = function () {
-        if ( this.velocity.magnitude() <= 20 ) {
-            this.velocity.reset();
-            this.acceleration.reset();
-            this.status = BODY_STATUS.STABLE;
-        }
-
         return this;
     };
 
     body.prototype._adjustPosition = function () {
-        var x = Math.round( this.position.x ),
-            y = Math.round( this.position.y ),
+        var x = this.position.x,
+            y = this.position.y,
             horizontalDistance = this.radius || this.width/2,
             verticalDistance = this.radius || this.height/2;
 
@@ -203,7 +187,6 @@
 
         if (y + verticalDistance > this.world.height ) {
             this.position.y = ( this.world.height - verticalDistance );
-            // this.prevPosition.y = this.position.y;
         }
 
         if (this.position.y - (verticalDistance) < 0 ) {
@@ -265,7 +248,7 @@
         this.width = 0;
         this.height = 0;
         this.radius = 0;
-        this.world = undefined;
+        // this.world = undefined;
         this.color = "fff";
 
         return this;
