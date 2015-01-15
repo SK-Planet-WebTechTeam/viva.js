@@ -1,4 +1,8 @@
 
+
+    /**
+     * ConstantAccelerationBehavior
+     */
     var ConstantAccelerationBehavior = function ( ax, ay ) {
         this.acceleration = Physics.Vector.create( ax, ay );
     };
@@ -11,24 +15,31 @@
         body.accelerate( Physics.Vector.copy( this.acceleration ) );
     };
 
-    var BoundaryCollisionBehavior = function ( boundary ) {
+
+    /**
+     * BoundaryCollisionBehavior
+     */
+    var BoundaryCollisionBehavior = function ( option ) {
         this.boundary = {
-            top: boundary.y,
-            left: boundary.x,
-            bottom: boundary.y + boundary.height,
-            right: boundary.x + boundary.width
+            top: option.y,
+            left: option.x,
+            bottom: option.y + option.height,
+            right: option.x + option.width
         };
+        this.cor = option.cor || 1;
     };
 
     BoundaryCollisionBehavior.prototype.behave = function ( body ) {
         var norm = this._norm( body ),
             v = body.velocity.clone(),
-            j = -( 1 + body.cor ) * v.dot( norm ),
+            j = -( 1 + ( body.cor * this.cor ) ) * v.dot( norm ),
             jn = norm.clone().scale( j );
 
         if ( !norm.isZero() ) {
             body.velocity.add( jn );
-            // console.log(jn);
+            if ( jn.magnitude() < 20 ) {
+                body._adjustPosition();
+            }
         }
 
         Physics.Vector.release( v, jn );
@@ -70,6 +81,11 @@
         zero: Physics.Vector.create( 0, 0 ),
     };
 
+
+
+    /**
+     * CollisionBehavior ( Body collision )
+     */
     var CollisionBehavior = function () {
         this.collisions = [];
     };
@@ -134,6 +150,8 @@
                     bodyA : bodyA,
                     bodyB : bodyB,
                     point : point.scale( bodyA.radius / cB.magnitude() ).add( cA )
+
+                    // point : point.scale( bodyA.radius / ( bodyA.radius + bodyB.radius ) ).add( cA )
                 };
 
             }
@@ -145,11 +163,19 @@
     };
 
     CollisionBehavior.prototype._collide = function ( collision ) {
+
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             point = collision.point,
 
+            // DEBUG
+            prevVelA = bodyA.velocity.clone(),
+            prevVelB = bodyB.velocity.clone(),
+
+
             vab = Physics.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
+
+            vab_clone = vab.clone(),
             ma = bodyA.mass,
             mb = bodyB.mass,
             ra = Physics.Vector.copy( point ).sub( bodyA.position ), // vector from center of A to point of collision
@@ -180,76 +206,47 @@
             wb = rb.scale( 1/Ib ).cross( Jnb );
 
 
-        bodyA.velocity.sub( Jna.scale( 1/ma ) );
-        bodyB.velocity.add( Jnb.scale( 1/mb ) );
+        if ( vab_clone.dot( n ) < 0 ) {
+            bodyA.velocity.sub( Jna.scale( 1/ma ) );
+            bodyB.velocity.add( Jnb.scale( 1/mb ) );
 
-        bodyA.angularVelocity -= wa;
-        bodyB.angularVelocity += wb;
+            bodyA.angularVelocity -= wa;
+            bodyB.angularVelocity += wb;
 
-        // if(|Vrt| > u*J) //Dynamic friction
-        // Jt = -u*J;
-        // else //Static friction
-        // Jt = -|Vrt|;
+            // friction
+            var Jt,
+                fn = vt.clone().scale( -1 / vt.magnitude() );
 
-        // Jt = Jt/{1/m1 + 1/m2 + n . [(r1 x t)/I1] x r1 + n . [(r2 x t)/I2] x r2}
+            if ( vt.magnitude() > cof * J ) {
+                Jt =  -cof * J;
+            } else {
+                Jt = -vt.magnitude();
+            }
 
-        // Jt - The scalar friction impulse
-        // Vrt - The tangent component of the relative velocity
-        // m1 - The mass of rigid body 1
-        // m2 - The mass of rigid body 2
-        // t - The tangent normal of the collision
-        // r1 - The vector from the center of mass of rigid body 1 to the point of collision
-        // r2 - The vector from the center of mass of rigid body 2 to the point of collision
-        // I1 - Inertia tensor for rigid body 1
-        // I2 - Inertia tensor for rigid body 2
+            if ( vt.magnitude() === 0 ) {
+                fn.reset();
+            }
 
-        // Then you apply the friction impulse similar to the frictionless impulse.
+            Jt = Jt / ( (1/ma + 1/mb) + n.dot( raClone2.scale( raClone2.cross( fn )/Ia ) ) + n.dot( rbClone2.scale( rbClone2.cross( fn )/Ib ) ) );
 
-        // v1 = v1 + (Jtt)/m1
-        // v2 = v2 + (-Jtn)/m2
-        // w1 = w1 + (r1 x Jtt)/I1
-        // w2 = w2 + (r2 x -Jtt)/I2
-
-        // v1 - Velocity of rigid body 1
-        // v2 - Velocity of rigid body 2
-        // w1 - Angular velocity of rigid body 1
-        // w2 - Angular velocity of rigid body 2
-
-        // This gives results that are really close to what I want, although there is one outstanding issue. The friction impulse will not apply to rotation around the relative contact point vector. This happens because of how the relative velocity is calculated. For example, if I have sphere spinning along the Y Axis on the ground then it will continue to spin forever.
-
-        // Either this means that the above equation is wrong, or I just need to handle the friction for the rotation around the relative contact point separately (which is a simple task). As you can see below the cross product will basically cancel out any rotation along the axis created by the relative contact point.
-
-        // Vr = (v1 + r1 x w1) - (v2 + r2 x w2)
-
-        // Vr - The relative contact velocity
-
-        // var Jt,
-        //     fn = vt.clone().scale( -1 / vt.magnitude() );
-        // if ( vt.magnitude() > cof * J ) {
-        //     // var fn = vt.clone().scale( -1 / vt.magnitude() ),
-        //     //     denom = 1 / ma + 1/Ia * ra
-        //     Jt =  -cof * J;
-        // } else {
-        //     Jt = -vt.magnitude();
-        // }
-
-        // Jt = Jt / ( (1/ma + 1/mb) + n.dot( raClone2.scale( raClone2.cross( fn )/Ia ) ) + n.dot( rbClone2.scale( rbClone2.cross( fn )/Ib ) ) );
-
-        // var Jta = fn.clone().scale( Jt ),
-        //     Jtb = fn.clone().scale( Jt ),
-        //     wta = ra.cross( Jta ), // angular velocity change
-        //     wtb = rb.cross( Jtb );
+            var Jta = fn.clone().scale( Jt ),
+                Jtb = fn.clone().scale( Jt ),
+                wta = ra.cross( Jta ), // angular velocity change
+                wtb = rb.cross( Jtb );
 
 
-        // bodyA.velocity.sub( Jta.scale( 1/ma ) );
-        // bodyB.velocity.add( Jtb.scale( 1/mb ) );
+            bodyA.velocity.sub( Jta.scale( 1/ma ) );
+            bodyB.velocity.add( Jtb.scale( 1/mb ) );
 
-        // bodyA.angularVelocity -= wta;
-        // bodyB.angularVelocity += wtb;
+            bodyA.angularVelocity -= wta;
+            bodyB.angularVelocity += wtb;
+        }
 
-        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point /*, fn,  Jta, Jtb */ );
+        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
+        Physics.Vector.release( fn,  Jta, Jtb );
 
         this._adjustBodyPosition( collision );
+
 
     };
 
@@ -260,29 +257,33 @@
             cA = Physics.Vector.copy( bodyA.position ),
             cB = Physics.Vector.copy( bodyB.position ),
             distance = cB.sub(cA),
-            overlap = bodyA.radius + bodyB.radius - distance.magnitude();
+            overlap = bodyA.radius + bodyB.radius - distance.magnitude(),
+            ratioA = bodyA.radius/( bodyA.radius + bodyB.radius ),
+            ratioB = bodyB.radius/( bodyA.radius + bodyB.radius );
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
             if( overlap > 0 ) {
                 distance.normalize().scale( overlap );
                 if ( bodyA.position.x < bodyB.position.x ) {
-                    bodyA.position.x -= distance.x/2;
-                    bodyB.position.x += distance.x/2;
+                    bodyA.position.x -= distance.x * ratioA;
+                    bodyB.position.x += distance.x * ratioB;
                 } else {
-                    bodyA.position.x += distance.x/2;
-                    bodyB.position.x -= distance.x/2;
+                    bodyA.position.x += distance.x * ratioA;
+                    bodyB.position.x -= distance.x * ratioB;
                 }
 
                 if ( bodyA.position.y < bodyB.position.y ) {
-                    bodyA.position.y -= distance.y/2;
-                    bodyB.position.y += distance.y/2;
+                    bodyA.position.y -= distance.y * ratioA;
+                    bodyB.position.y += distance.y * ratioB;
                 } else {
-                    bodyA.position.y += distance.y/2;
-                    bodyB.position.y -= distance.y/2;
+                    bodyA.position.y += distance.y * ratioA;
+                    bodyB.position.y -= distance.y * ratioB;
                 }
             }
         }
 
+        bodyA._adjustPosition();
+        bodyB._adjustPosition();
         Physics.Vector.release( cA );
         Physics.Vector.release( cB );
     };
