@@ -53,7 +53,8 @@
                 radius: 20,
                 mass: i+1,
                 // color: "pink",
-                restitution: 0.9
+                restitution: 0.8,
+                cof: 0
             });
 
             body.applyForce( {x: 100 * Math.random() + 30,y: - (10 * Math.random() + 20) });
