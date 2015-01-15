@@ -47,9 +47,9 @@
         this.ctx.strokeStyle = "#000";
         this.ctx.lineWidth = 1;
 
-        if ( bodies.some( function ( v ) { return v.isChanged(); }) ) {
+        // if ( bodies.some( function ( v ) { return v.isChanged(); }) ) {
             this.ctx.clearRect( 0, 0, this.width, this.height );
-        }
+        // }
 
         // for( i = 0; i < len; i++ ){
         //     this._clearBody( bodies[ i ] );
