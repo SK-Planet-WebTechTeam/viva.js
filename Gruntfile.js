@@ -52,10 +52,19 @@ module.exports = function(grunt) {
           spawn: false,
         },
       },
+    },
+    copy: {
+      main: {
+        files: [
+          // includes files within path
+          {expand: true, src: ['dist/*', 'example/*'], dest: '/Users/skplanet/Dropbox/앱/KISSr/cheeki.kissr.com/physics/'}
+        ]
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-closure-compiler');
   grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -65,5 +74,7 @@ module.exports = function(grunt) {
   // Default task.
   grunt.registerTask('default', ['clean', 'concat', 'uglify']);
   grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'watch']);
+  grunt.registerTask('kissr', ['clean', 'concat', 'uglify', 'copy']);
+  // grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'watch']);
 
 };
