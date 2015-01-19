@@ -32,7 +32,7 @@
          * @param {String} type type of a body [ "rectangle" | "circle" ]
          * @param {Object} body's property
          * @example
-         * body = Bouncy.Body.create( "circle", {
+         * body = viva.Body.create( "circle", {
          *     x: 100,
          *     y: 100,
          *     radius: 10,
@@ -81,10 +81,10 @@
      * @param {Object} option body's properties
      */
     var body = function ( option ) {
-        this.position = Bouncy.Vector.create( option.x, option.y );
-        this.velocity = Bouncy.Vector.create();
-        this.acceleration = Bouncy.Vector.create();
-        this.prevPosition = Bouncy.Vector.create();
+        this.position = viva.Vector.create( option.x, option.y );
+        this.velocity = viva.Vector.create();
+        this.acceleration = viva.Vector.create();
+        this.prevPosition = viva.Vector.create();
         this.angularVelocity = 0;
 
         this.cof = option.cof || 0;
@@ -109,7 +109,7 @@
      * @param {Vector} vector vector of the position
      */
     body.prototype.move = function( vector ) {
-        Bouncy.Vector.release( this.prevPosition );
+        viva.Vector.release( this.prevPosition );
         this.prevPosition = this.position;
         this.position = vector;
 
@@ -123,7 +123,7 @@
             i = 0,
             len = behaviors.length,
             behavior,
-            netF = Bouncy.Vector.create(),
+            netF = viva.Vector.create(),
             f;
 
         if ( len === 0 ) {
@@ -139,7 +139,7 @@
             }
 
             netF.add( f );
-            Bouncy.Vector.release( f );
+            viva.Vector.release( f );
         }
 
         return netF;
@@ -164,7 +164,7 @@
     body.prototype.accelerate = function ( a ) {
 
         this.acceleration.add( a.scale( this.world.ratio ) );
-        Bouncy.Vector.release( a );
+        viva.Vector.release( a );
 
         return this;
     };
@@ -179,11 +179,11 @@
         if ( this.status !== BODY_STATUS.NORMAL ) {
             return;
         }
-        var force = Bouncy.Vector.create(), // this.do( dt ),
-            prevVelocity = Bouncy.Vector.copy( this.velocity ),
+        var force = viva.Vector.create(), // this.do( dt ),
+            prevVelocity = viva.Vector.copy( this.velocity ),
             i = 0,
             a = this.acceleration,
-            prevAcceleration = Bouncy.Vector.copy( this.acceleration ),
+            prevAcceleration = viva.Vector.copy( this.acceleration ),
             f;
 
         if ( this.externalForce.length > 0 ) {
@@ -191,7 +191,7 @@
                 f = this.externalForce.pop();
                 force.add( f );
 
-                Bouncy.Vector.release( f );
+                viva.Vector.release( f );
             }
         }
 
@@ -211,9 +211,9 @@
         this.angle += this.angularVelocity * dt;
         // console.log ( this.angularVelocity );
 
-        Bouncy.Vector.release( prevVelocity );
-        Bouncy.Vector.release( a );
-        Bouncy.Vector.release( prevAcceleration );
+        viva.Vector.release( prevVelocity );
+        viva.Vector.release( a );
+        viva.Vector.release( prevAcceleration );
 
         return this;
     };
@@ -331,5 +331,5 @@
         return !this.position.isEqual( this.prevPosition );
     };
 
-    Bouncy.Body = BodyManager;
-    Bouncy.Body.initPool();
+    viva.Body = BodyManager;
+    viva.Body.initPool();

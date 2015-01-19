@@ -184,5 +184,5 @@
         }
     };
 
-    Bouncy.Renderer = Renderer;
+    viva.Renderer = Renderer;
 

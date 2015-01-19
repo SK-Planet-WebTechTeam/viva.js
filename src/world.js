@@ -181,10 +181,10 @@
 
         // calculate the velocity of movement
         body.prevPosition.set( x, y );
-        body.move( Bouncy.Vector.create( x, y ) );
-        velocity = Bouncy.Vector.copy( body.position ).sub( body.prevPosition ).scale( 1000 / dt );
+        body.move( viva.Vector.create( x, y ) );
+        velocity = viva.Vector.copy( body.position ).sub( body.prevPosition ).scale( 1000 / dt );
 
-        Bouncy.Vector.release( body.velocity );
+        viva.Vector.release( body.velocity );
         body.velocity = velocity;
 
         this.lastMove = moveTime;
@@ -236,4 +236,4 @@
         this.renderer.off( endEvent, this.onEnd );
     };
 
-    Bouncy.World = World;
+    viva.World = World;

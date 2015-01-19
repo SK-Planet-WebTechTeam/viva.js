@@ -8,7 +8,7 @@
      * @param {Number} ay acceleration along y-axis
      */
     var ConstantAccelerationBehavior = function ( ax, ay ) {
-        this.acceleration = Bouncy.Vector.create( ax, ay );
+        this.acceleration = viva.Vector.create( ax, ay );
     };
 
     /**
@@ -20,8 +20,8 @@
         if ( body.status !== BODY_STATUS.NORMAL ) {
             return;
         }
-        // return Bouncy.Vector.copy( this.acceleration ).scale( body.mass );
-        body.accelerate( Bouncy.Vector.copy( this.acceleration ) );
+        // return viva.Vector.copy( this.acceleration ).scale( body.mass );
+        body.accelerate( viva.Vector.copy( this.acceleration ) );
     };
 
 
@@ -32,7 +32,7 @@
      * @param {Object} option boundary info including boundary size, restitution, friction
      *
      * @example
-     * Bouncy.Behavior.BoundaryCollision ({
+     * viva.Behavior.BoundaryCollision ({
      *     x: 0,
      *     y: 0,
      *     width: world.renderer.width,
@@ -69,7 +69,7 @@
             }
         }
 
-        Bouncy.Vector.release( v, jn );
+        viva.Vector.release( v, jn );
     };
 
     /**
@@ -115,11 +115,11 @@
      * @private
      */
     BoundaryCollisionBehavior.prototype._norms = {
-        top: Bouncy.Vector.create( 0, -1 ),
-        left: Bouncy.Vector.create( -1, 0 ),
-        bottom: Bouncy.Vector.create( 0, -1 ),
-        right: Bouncy.Vector.create( -1, 0 ),
-        zero: Bouncy.Vector.create( 0, 0 ),
+        top: viva.Vector.create( 0, -1 ),
+        left: viva.Vector.create( -1, 0 ),
+        bottom: viva.Vector.create( 0, -1 ),
+        right: viva.Vector.create( -1, 0 ),
+        zero: viva.Vector.create( 0, 0 ),
     };
 
 
@@ -206,13 +206,13 @@
     CollisionBehavior.prototype._checkCollision = function ( bodyA, bodyB ) {
         // TODO: other shapes
         var cA = bodyA.position,
-            cB = Bouncy.Vector.copy( bodyB.position ),
+            cB = viva.Vector.copy( bodyB.position ),
             collision,
             point;
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
             if( cB.sub( cA ).magnitude() <= bodyA.radius + bodyB.radius ) {
-                point = Bouncy.Vector.copy( cB );
+                point = viva.Vector.copy( cB );
 
                 if ( cB.magnitude() === 0 ) {
                     return;
@@ -229,7 +229,7 @@
             }
         }
 
-        Bouncy.Vector.release( cB );
+        viva.Vector.release( cB );
 
         return collision;
     };
@@ -246,14 +246,14 @@
             bodyB = collision.bodyB,
             point = collision.point,
 
-            vab = Bouncy.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
+            vab = viva.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
 
             vab_clone = vab.clone(),
             ma = bodyA.mass,
             mb = bodyB.mass,
-            ra = Bouncy.Vector.copy( point ).sub( bodyA.position ), // a vector from center of A to point of collision
-            rb = Bouncy.Vector.copy( point ).sub( bodyB.position ), // a vector from center of B to point of collision
-            distance = Bouncy.Vector.copy( bodyA.position ).sub( bodyB.position ), // vector from center point of A to center point of B
+            ra = viva.Vector.copy( point ).sub( bodyA.position ), // a vector from center of A to point of collision
+            rb = viva.Vector.copy( point ).sub( bodyB.position ), // a vector from center of B to point of collision
+            distance = viva.Vector.copy( bodyA.position ).sub( bodyB.position ), // vector from center point of A to center point of B
             n = distance.scale( 1 / distance.magnitude() ), // unit normal vector
             vn = vab.projection( n ), // relative velocity projected on normal vector
             vt = vab.sub( vn ), // tangential velocity
@@ -263,19 +263,19 @@
             Ia = ma * bodyA.radius * bodyA.radius / 2, // moment of inertia
             Ib = mb * bodyB.radius * bodyB.radius / 2,
 
-            raClone = Bouncy.Vector.copy( ra ),
-            rbClone = Bouncy.Vector.copy( rb ),
-            raClone2 = Bouncy.Vector.copy( ra ),
-            rbClone2 = Bouncy.Vector.copy( rb ),
+            raClone = viva.Vector.copy( ra ),
+            rbClone = viva.Vector.copy( rb ),
+            raClone2 = viva.Vector.copy( ra ),
+            rbClone2 = viva.Vector.copy( rb ),
 
             Ira = raClone.scale( raClone.cross( n ) / Ia ),
             Irb = rbClone.scale( rbClone.cross( n ) / Ib ),
-            n_copy = Bouncy.Vector.copy( n ),
+            n_copy = viva.Vector.copy( n ),
 
             J = - (1 + cor) * vn.magnitude() / ( n.dot( n ) * ( 1/ma + 1/mb ) + n_copy.dot( Ira.add( Irb ) ) ), // impulse
 
-            Jna = Bouncy.Vector.copy( n ).scale( J ),
-            Jnb = Bouncy.Vector.copy( n ).scale( J ),
+            Jna = viva.Vector.copy( n ).scale( J ),
+            Jnb = viva.Vector.copy( n ).scale( J ),
 
             wa = ra.scale( 1/Ia ).cross( Jna ), // angular velocity change
             wb = rb.scale( 1/Ib ).cross( Jnb ),
@@ -323,8 +323,8 @@
             bodyB.angularVelocity += wtb;
         }
 
-        Bouncy.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
-        Bouncy.Vector.release( fn,  Jta, Jtb );
+        viva.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
+        viva.Vector.release( fn,  Jta, Jtb );
 
         this._adjustBodyPosition( collision );
 
@@ -341,8 +341,8 @@
 
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
-            cA = Bouncy.Vector.copy( bodyA.position ),
-            cB = Bouncy.Vector.copy( bodyB.position ),
+            cA = viva.Vector.copy( bodyA.position ),
+            cB = viva.Vector.copy( bodyB.position ),
             distance = cB.sub(cA),
             overlap = bodyA.radius + bodyB.radius - distance.magnitude(),
             ratioA = bodyA.radius/( bodyA.radius + bodyB.radius ),
@@ -372,8 +372,8 @@
             }
         }
 
-        Bouncy.Vector.release( cA );
-        Bouncy.Vector.release( cB );
+        viva.Vector.release( cA );
+        viva.Vector.release( cB );
     };
 
     /**
@@ -391,5 +391,5 @@
         }
     };
 
-    Bouncy.Behavior = Behavior;
+    viva.Behavior = Behavior;
 

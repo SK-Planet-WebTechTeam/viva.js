@@ -2,6 +2,7 @@
     /**
      * 2D vector
      * @typedef {Object} Vector
+     * @type {Vector}
      * @property {number} x x-component of a 2d vector
      * @property {number} y y-component of a 2d vector
      */
@@ -95,7 +96,7 @@
     Vector.prototype.projection = function ( vector ) {
         var dotProd = this.dot( vector ),
             magnitude = vector.magnitude(),
-            result = Bouncy.Vector.copy( vector );
+            result = viva.Vector.copy( vector );
 
         result.scale( dotProd / ( magnitude * magnitude ) );
 
@@ -204,7 +205,7 @@
      * @return {Vector} new vector from vector pool with same xy components
      */
     Vector.prototype.clone = function () {
-        return Bouncy.Vector.copy( this );
+        return viva.Vector.copy( this );
     };
 
     var vectorPool = [];
@@ -258,8 +259,8 @@
     };
 
 
-    Bouncy.Vector = VectorManager;
-    Bouncy.Vector.initVectorPool();
+    viva.Vector = VectorManager;
+    viva.Vector.initVectorPool();
 
     window.vectorcnt = 0;
 
