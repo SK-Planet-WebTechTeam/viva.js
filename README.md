@@ -19,7 +19,7 @@ Roadmap
   - polygon
 - add more behaviors
 - improve accuracy
-- body collecion
+- body collection
 - add more renderers
   - DOM renderer
   - WebGL support
