@@ -14,21 +14,6 @@ world.apply( viva.behavior.Collision() );
 var body,
 	size = 50;
 
-// for ( var i = 0; i < 10; i++ ) {
-// 	body = viva.Body.create( "rectangle", {
-// 		x: (size + 10) * (i % 10) + 330,
-// 		y: (size + 10) * Math.floor(i / 10) + 100,
-// 		width: size,
-// 		height: size,
-// 		mass: 3,
-// 		color: "skyblue",
-// 		cor: 0.9
-// 	});
-
-// 	world.add( body );
-// 	body.applyForce( viva.Vector.create( 100 * Math.random() + 300, - (100 * Math.random() + 200) ));
-// }
-
 var colors = ["red", "blue", "black", "magenta", "skyblue", "pink", "orange", "purple", "green", "yellow"];
 for ( var i = 0; i < 10; i++ ) {
 	body = viva.body.create( "circle", {
