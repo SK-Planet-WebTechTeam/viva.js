@@ -1,23 +1,44 @@
 
 
     /**
-     * ConstantAccelerationBehavior
+     * constant acceleration like gravity
+     * @class
+     *
+     * @param {Number} ax acceleration along x-axis
+     * @param {Number} ay acceleration along y-axis
      */
     var ConstantAccelerationBehavior = function ( ax, ay ) {
-        this.acceleration = Physics.Vector.create( ax, ay );
+        this.acceleration = Bouncy.Vector.create( ax, ay );
     };
 
+    /**
+     * apply acceleration to a body
+     *
+     * @param {Object} body a Body object to which apply constant acceleration
+     */
     ConstantAccelerationBehavior.prototype.behave = function ( body ) {
         if ( body.status !== BODY_STATUS.NORMAL ) {
             return;
         }
-        // return Physics.Vector.copy( this.acceleration ).scale( body.mass );
-        body.accelerate( Physics.Vector.copy( this.acceleration ) );
+        // return Bouncy.Vector.copy( this.acceleration ).scale( body.mass );
+        body.accelerate( Bouncy.Vector.copy( this.acceleration ) );
     };
 
 
     /**
-     * BoundaryCollisionBehavior
+     * boundary collision
+     * @class
+     *
+     * @param {Object} option boundary info including boundary size, restitution, friction
+     *
+     * @example
+     * Bouncy.Behavior.BoundaryCollision ({
+     *     x: 0,
+     *     y: 0,
+     *     width: world.renderer.width,
+     *     height: world.renderer.height,
+     *     cor: 1
+     * })
      */
     var BoundaryCollisionBehavior = function ( option ) {
         this.boundary = {
@@ -29,6 +50,12 @@
         this.cor = option.cor || 1;
     };
 
+
+    /**
+     * check collision and calculate the post-collision velocity and apply it to a body
+     *
+     * @param {Object} body a Body object to which apply constant acceleration
+     */
     BoundaryCollisionBehavior.prototype.behave = function ( body ) {
         var norm = this._norm( body ),
             v = body.velocity.clone(),
@@ -42,15 +69,24 @@
             }
         }
 
-        Physics.Vector.release( v, jn );
+        Bouncy.Vector.release( v, jn );
     };
 
+    /**
+     * get unit normal vector of collision surface
+     * @private
+     *
+     */
     BoundaryCollisionBehavior.prototype._norm = function ( body ) {
         var collisionType = this._checkCollisionType( body );
 
         return this._norms[ collisionType ];
     };
 
+    /**
+     * check which direction is body colliding against
+     * @private
+     */
     BoundaryCollisionBehavior.prototype._checkCollisionType = function ( body ) {
         var x = body.position.x,
             y = body.position.y,
@@ -73,28 +109,44 @@
         return "zero";
     };
 
+
+    /**
+     * normal vectors
+     * @private
+     */
     BoundaryCollisionBehavior.prototype._norms = {
-        top: Physics.Vector.create( 0, -1 ),
-        left: Physics.Vector.create( -1, 0 ),
-        bottom: Physics.Vector.create( 0, -1 ),
-        right: Physics.Vector.create( -1, 0 ),
-        zero: Physics.Vector.create( 0, 0 ),
+        top: Bouncy.Vector.create( 0, -1 ),
+        left: Bouncy.Vector.create( -1, 0 ),
+        bottom: Bouncy.Vector.create( 0, -1 ),
+        right: Bouncy.Vector.create( -1, 0 ),
+        zero: Bouncy.Vector.create( 0, 0 ),
     };
 
 
 
     /**
-     * CollisionBehavior ( Body collision )
+     * body collision
+     * @class
      */
     var CollisionBehavior = function () {
         this.collisions = [];
     };
 
+    /**
+     * detect collision and do collision response
+     * @private
+     *
+     * @param {Object} body a body object to check and apply collision
+     */
     CollisionBehavior.prototype.behave = function ( body ) {
         this._detect( body );
         this._collisionResponse();
     };
 
+    /**
+     * detect collision between a body and other bodies
+     * @private
+     */
     CollisionBehavior.prototype._detect = function ( body ) {
         var bodies = body.world.bodies,
             len = bodies.length,
@@ -115,6 +167,10 @@
         }
     };
 
+    /**
+     * collision response
+     * @private
+     */
     CollisionBehavior.prototype._collisionResponse = function () {
         var len = this.collisions.length,
             i = 0;
@@ -125,6 +181,13 @@
 
     };
 
+
+    /**
+     * check if this collision is already in count
+     * @private
+     *
+     * @param {Object} collision a collision object
+     */
     CollisionBehavior.prototype._hasCollision = function ( collision ) {
         return this.collisions.some( function ( v ) {
             return ( v.bodyA === collision.bodyA && v.bodyB === collision.bodyB ) ||
@@ -132,15 +195,24 @@
         });
     };
 
+    /**
+     * check if given two bodies are colliding at this time step.
+     * currently, only circlular bodies are supported
+     * @private
+     *
+     * @param {Object} bodyA
+     * @param {Object} bodyB
+     */
     CollisionBehavior.prototype._checkCollision = function ( bodyA, bodyB ) {
+        // TODO: other shapes
         var cA = bodyA.position,
-            cB = Physics.Vector.copy( bodyB.position ),
+            cB = Bouncy.Vector.copy( bodyB.position ),
             collision,
             point;
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
             if( cB.sub( cA ).magnitude() <= bodyA.radius + bodyB.radius ) {
-                point = Physics.Vector.copy( cB );
+                point = Bouncy.Vector.copy( cB );
 
                 if ( cB.magnitude() === 0 ) {
                     return;
@@ -157,53 +229,62 @@
             }
         }
 
-        Physics.Vector.release( cB );
+        Bouncy.Vector.release( cB );
 
         return collision;
     };
 
+    /**
+     * collide two bodies in collision. calculate and apply post-collision velocity
+     * @private
+     *
+     * @param {Object} collision
+     */
     CollisionBehavior.prototype._collide = function ( collision ) {
 
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             point = collision.point,
 
-            // DEBUG
-            prevVelA = bodyA.velocity.clone(),
-            prevVelB = bodyB.velocity.clone(),
-
-
-            vab = Physics.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
+            vab = Bouncy.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
 
             vab_clone = vab.clone(),
             ma = bodyA.mass,
             mb = bodyB.mass,
-            ra = Physics.Vector.copy( point ).sub( bodyA.position ), // vector from center of A to point of collision
-            rb = Physics.Vector.copy( point ).sub( bodyB.position ), // vector from center of B to point of collision
-            distance = Physics.Vector.copy( bodyA.position ).sub( bodyB.position ), // vector from center point of A to center point of B
+            ra = Bouncy.Vector.copy( point ).sub( bodyA.position ), // a vector from center of A to point of collision
+            rb = Bouncy.Vector.copy( point ).sub( bodyB.position ), // a vector from center of B to point of collision
+            distance = Bouncy.Vector.copy( bodyA.position ).sub( bodyB.position ), // vector from center point of A to center point of B
             n = distance.scale( 1 / distance.magnitude() ), // unit normal vector
             vn = vab.projection( n ), // relative velocity projected on normal vector
             vt = vab.sub( vn ), // tangential velocity
             cor = bodyA.cor * bodyB.cor, // coefficient of restitution
             cof = bodyA.cof * bodyB.cof, // coefficient of friction
+
             Ia = ma * bodyA.radius * bodyA.radius / 2, // moment of inertia
             Ib = mb * bodyB.radius * bodyB.radius / 2,
 
-            raClone = Physics.Vector.copy( ra ),
-            rbClone = Physics.Vector.copy( rb ),
-            raClone2 = Physics.Vector.copy( ra ),
-            rbClone2 = Physics.Vector.copy( rb ),
+            raClone = Bouncy.Vector.copy( ra ),
+            rbClone = Bouncy.Vector.copy( rb ),
+            raClone2 = Bouncy.Vector.copy( ra ),
+            rbClone2 = Bouncy.Vector.copy( rb ),
 
             Ira = raClone.scale( raClone.cross( n ) / Ia ),
             Irb = rbClone.scale( rbClone.cross( n ) / Ib ),
-            n_copy = Physics.Vector.copy( n ),
+            n_copy = Bouncy.Vector.copy( n ),
 
             J = - (1 + cor) * vn.magnitude() / ( n.dot( n ) * ( 1/ma + 1/mb ) + n_copy.dot( Ira.add( Irb ) ) ), // impulse
 
-            Jna = Physics.Vector.copy( n ).scale( J ),
-            Jnb = Physics.Vector.copy( n ).scale( J ),
+            Jna = Bouncy.Vector.copy( n ).scale( J ),
+            Jnb = Bouncy.Vector.copy( n ).scale( J ),
+
             wa = ra.scale( 1/Ia ).cross( Jna ), // angular velocity change
-            wb = rb.scale( 1/Ib ).cross( Jnb );
+            wb = rb.scale( 1/Ib ).cross( Jnb ),
+            Jt,
+            fn,
+            Jta,
+            Jtb,
+            wta,
+            wtb;
 
 
         if ( vab_clone.dot( n ) < 0 ) {
@@ -214,8 +295,8 @@
             bodyB.angularVelocity += wb;
 
             // friction
-            var Jt,
-                fn = vt.clone().scale( -1 / vt.magnitude() );
+            Jt;
+            fn = vt.clone().scale( -1 / vt.magnitude() );
 
             if ( vt.magnitude() > cof * J ) {
                 Jt =  -cof * J;
@@ -229,10 +310,10 @@
 
             Jt = Jt / ( (1/ma + 1/mb) + n.dot( raClone2.scale( raClone2.cross( fn )/Ia ) ) + n.dot( rbClone2.scale( rbClone2.cross( fn )/Ib ) ) );
 
-            var Jta = fn.clone().scale( Jt ),
-                Jtb = fn.clone().scale( Jt ),
-                wta = ra.cross( Jta ), // angular velocity change
-                wtb = rb.cross( Jtb );
+            Jta = fn.clone().scale( Jt );
+            Jtb = fn.clone().scale( Jt );
+            wta = ra.cross( Jta ); // angular velocity change;
+            wtb = rb.cross( Jtb );
 
 
             bodyA.velocity.sub( Jta.scale( 1/ma ) );
@@ -242,24 +323,33 @@
             bodyB.angularVelocity += wtb;
         }
 
-        Physics.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
-        Physics.Vector.release( fn,  Jta, Jtb );
+        Bouncy.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
+        Bouncy.Vector.release( fn,  Jta, Jtb );
 
         this._adjustBodyPosition( collision );
 
 
     };
 
+    /**
+     * if two bodies in collision is overlapped to each other, move bodies a little apart along the center line, according to ratio of their radii
+     * @private
+     *
+     * @param {Object} collision
+     */
     CollisionBehavior.prototype._adjustBodyPosition = function ( collision ) {
 
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
-            cA = Physics.Vector.copy( bodyA.position ),
-            cB = Physics.Vector.copy( bodyB.position ),
+            cA = Bouncy.Vector.copy( bodyA.position ),
+            cB = Bouncy.Vector.copy( bodyB.position ),
             distance = cB.sub(cA),
             overlap = bodyA.radius + bodyB.radius - distance.magnitude(),
             ratioA = bodyA.radius/( bodyA.radius + bodyB.radius ),
             ratioB = bodyB.radius/( bodyA.radius + bodyB.radius );
+
+        bodyA._adjustPosition();
+        bodyB._adjustPosition();
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
             if( overlap > 0 ) {
@@ -282,12 +372,13 @@
             }
         }
 
-        bodyA._adjustPosition();
-        bodyB._adjustPosition();
-        Physics.Vector.release( cA );
-        Physics.Vector.release( cB );
+        Bouncy.Vector.release( cA );
+        Bouncy.Vector.release( cB );
     };
 
+    /**
+     * @namespace
+     */
     var Behavior = {
         ConstantAcceleration: function ( ax, ay ) {
             return new ConstantAccelerationBehavior( ax, ay );
@@ -300,5 +391,5 @@
         }
     };
 
-    Physics.Behavior = Behavior;
+    Bouncy.Behavior = Behavior;
 

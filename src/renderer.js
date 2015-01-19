@@ -4,6 +4,13 @@
             ( typeof obj.style === "object" ) && ( typeof obj.ownerDocument ==="object" );
     };
 
+    /**
+     * canvas renderer
+     * @class
+     *
+     * @param {String|DOM} element an id of canvas element or container element.
+     *                     Or, the DOM element itself of canvas element or container element
+     */
     var CanvasRenderer = function ( element ) {
         var el, parent = document.body;
         if ( typeof element === "string" ) {
@@ -39,6 +46,9 @@
         });
     };
 
+    /**
+     * draw bodies
+     */
     CanvasRenderer.prototype.draw = function ( bodies ) {
         var i,
             len = bodies.length,
@@ -60,6 +70,10 @@
         }
     };
 
+    /**
+     * draw a body
+     * @private
+     */
     CanvasRenderer.prototype._drawBody = function ( body ) {
         var position = body.position,
             width = body.width,
@@ -102,6 +116,10 @@
         this.ctx.restore();
     };
 
+    /**
+     * clear a body
+     * @private
+     */
     CanvasRenderer.prototype._clearBody = function ( body ) {
 
         if ( !this._isInCanvas( body ) ) {
@@ -121,6 +139,10 @@
         }
     };
 
+    /**
+     * draw a body
+     * @private
+     */
     CanvasRenderer.prototype._isInCanvas = function ( body ) {
         if ( body.type === "rectangle" ) {
             return this.width  >= body.position.x + body.width/2 &&
@@ -133,19 +155,34 @@
         }
     };
 
+    /**
+     * add an event listener to the canvas element
+     *
+     * @param {String} event event name
+     * @param {function} callback callback function
+     */
     CanvasRenderer.prototype.on = function ( event, callback ) {
         this.el.addEventListener( event, callback );
     };
 
+    /**
+     * remove an event listener to the canvas element
+     *
+     * @param {String} event event name
+     * @param {String} functionName name of the callback function
+     */
     CanvasRenderer.prototype.off = function ( event, functionName ) {
         this.el.removeEventListener( event, functionName );
     };
 
+    /**
+     * @namespace
+     */
     var Renderer = {
         canvas: function ( element ) {
             return new CanvasRenderer( element );
         }
     };
 
-    Physics.Renderer = Renderer;
+    Bouncy.Renderer = Renderer;
 
