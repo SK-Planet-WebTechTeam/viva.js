@@ -24,8 +24,8 @@ module.exports = function(grunt) {
         footer: "})(window);"
       },
       dist: {
-        src: ['src/util.js', 'src/physics.js', 'src/vector.js',  'src/*.js'],
-        dest: 'dist/physics.js'
+        src: ['src/util.js', 'src/bouncy.js', 'src/vector.js',  'src/*.js'],
+        dest: 'dist/bouncy.js'
       }
     },
     uglify: {
@@ -40,7 +40,7 @@ module.exports = function(grunt) {
       },
       my_target: {
         files: {
-          'dist/physics.min.js': ['dist/physics.js']
+          'dist/bouncy.min.js': ['dist/bouncy.js']
         }
       }
     },
