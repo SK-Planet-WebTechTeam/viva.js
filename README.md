@@ -18,7 +18,7 @@ Roadmap
   - full support for rectanglular bodies
   - polygon
 - add more behaviors
-- inprove accuracy
+- improve accuracy
 - body collecion
 - add more renderers
   - DOM renderer
