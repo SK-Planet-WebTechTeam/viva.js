@@ -30,10 +30,13 @@ module.exports = function(grunt) {
     },
     uglify: {
       options: {
-        preserveComments:'some',
+        preserveComments:'false',
         mangle: {
           except: []
-        }
+        },
+        compress: {
+          drop_console: true
+        },
       },
       my_target: {
         files: {
@@ -60,6 +63,14 @@ module.exports = function(grunt) {
           {expand: true, src: ['dist/*', 'example/*'], dest: '/Users/skplanet/Dropbox/앱/KISSr/cheeki.kissr.com/physics/'}
         ]
       }
+    },
+    jsdoc : {
+        dist : {
+            src: ['src/*.js'],
+            options: {
+                destination: 'docs'
+            }
+        }
     }
   });
 
@@ -70,10 +81,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-jsdoc');
 
   // Default task.
-  grunt.registerTask('default', ['clean', 'concat', 'uglify']);
-  grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'watch']);
+  grunt.registerTask('default', ['clean', 'concat', 'uglify', 'jsdoc']);
+  grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'jsdoc', 'watch']);
   grunt.registerTask('kissr', ['clean', 'concat', 'uglify', 'copy']);
   // grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'watch']);
 

@@ -16,7 +16,8 @@
     "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-uglify": "~0.2.7",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-contrib-copy": "^0.7.0"
+    "grunt-contrib-copy": "^0.7.0",
+    "grunt-jsdoc": "^0.5.7"
   },
   "dependencies": {
     "grunt-string-replace": "~0.2.7",
