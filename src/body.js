@@ -3,7 +3,9 @@
     var bodyPool = [];
 
     /**
+     * @mixin
      * @namespace Body
+     * @memberof viva
      */
     var BodyManager = {
         /** @private */
@@ -81,10 +83,10 @@
      * @param {Object} option body's properties
      */
     var body = function ( option ) {
-        this.position = viva.Vector.create( option.x, option.y );
-        this.velocity = viva.Vector.create();
-        this.acceleration = viva.Vector.create();
-        this.prevPosition = viva.Vector.create();
+        this.position = viva.vector.create( option.x, option.y );
+        this.velocity = viva.vector.create();
+        this.acceleration = viva.vector.create();
+        this.prevPosition = viva.vector.create();
         this.angularVelocity = 0;
 
         this.cof = option.cof || 0;
@@ -106,10 +108,10 @@
     /**
      * move the body to given position.
      *
-     * @param {Vector} vector vector of the position
+     * @param {vector} vector vector of the position
      */
     body.prototype.move = function( vector ) {
-        viva.Vector.release( this.prevPosition );
+        viva.vector.release( this.prevPosition );
         this.prevPosition = this.position;
         this.position = vector;
 
@@ -123,7 +125,7 @@
             i = 0,
             len = behaviors.length,
             behavior,
-            netF = viva.Vector.create(),
+            netF = viva.vector.create(),
             f;
 
         if ( len === 0 ) {
@@ -139,7 +141,7 @@
             }
 
             netF.add( f );
-            viva.Vector.release( f );
+            viva.vector.release( f );
         }
 
         return netF;
@@ -149,7 +151,7 @@
     /**
      * apply the given force (2d vector) to the body.
      *
-     * @param {Vector} force a force in 2d vector object
+     * @param {vector} force a force in 2d vector object
      */
     body.prototype.applyForce = function ( force ) {
         this.externalForce.push( force );
@@ -159,12 +161,12 @@
     /**
      * accelerate the body with the given amount of acceleration.
      *
-     * @param {Vector} a acceleration in 2d vector object
+     * @param {vector} a acceleration in 2d vector object
      */
     body.prototype.accelerate = function ( a ) {
 
         this.acceleration.add( a.scale( this.world.ratio ) );
-        viva.Vector.release( a );
+        viva.vector.release( a );
 
         return this;
     };
@@ -179,11 +181,11 @@
         if ( this.status !== BODY_STATUS.NORMAL ) {
             return;
         }
-        var force = viva.Vector.create(), // this.do( dt ),
-            prevVelocity = viva.Vector.copy( this.velocity ),
+        var force = viva.vector.create(), // this.do( dt ),
+            prevVelocity = viva.vector.copy( this.velocity ),
             i = 0,
             a = this.acceleration,
-            prevAcceleration = viva.Vector.copy( this.acceleration ),
+            prevAcceleration = viva.vector.copy( this.acceleration ),
             f;
 
         if ( this.externalForce.length > 0 ) {
@@ -191,7 +193,7 @@
                 f = this.externalForce.pop();
                 force.add( f );
 
-                viva.Vector.release( f );
+                viva.vector.release( f );
             }
         }
 
@@ -211,9 +213,9 @@
         this.angle += this.angularVelocity * dt;
         // console.log ( this.angularVelocity );
 
-        viva.Vector.release( prevVelocity );
-        viva.Vector.release( a );
-        viva.Vector.release( prevAcceleration );
+        viva.vector.release( prevVelocity );
+        viva.vector.release( a );
+        viva.vector.release( prevAcceleration );
 
         return this;
     };
@@ -331,5 +333,5 @@
         return !this.position.isEqual( this.prevPosition );
     };
 
-    viva.Body = BodyManager;
-    viva.Body.initPool();
+    viva.body = BodyManager;
+    viva.body.initPool();

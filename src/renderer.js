@@ -11,7 +11,7 @@
      * @param {String|DOM} element an id of canvas element or container element.
      *                     Or, the DOM element itself of canvas element or container element
      */
-    var CanvasRenderer = function ( element ) {
+    var canvasRenderer = function ( element ) {
         var el, parent = document.body;
         if ( typeof element === "string" ) {
             el = document.getElementById( element );
@@ -49,7 +49,7 @@
     /**
      * draw bodies
      */
-    CanvasRenderer.prototype.draw = function ( bodies ) {
+    canvasRenderer.prototype.draw = function ( bodies ) {
         var i,
             len = bodies.length,
             _this = this;
@@ -74,7 +74,7 @@
      * draw a body
      * @private
      */
-    CanvasRenderer.prototype._drawBody = function ( body ) {
+    canvasRenderer.prototype._drawBody = function ( body ) {
         var position = body.position,
             width = body.width,
             height = body.height,
@@ -120,7 +120,7 @@
      * clear a body
      * @private
      */
-    CanvasRenderer.prototype._clearBody = function ( body ) {
+    canvasRenderer.prototype._clearBody = function ( body ) {
 
         if ( !this._isInCanvas( body ) ) {
             return;
@@ -143,7 +143,7 @@
      * draw a body
      * @private
      */
-    CanvasRenderer.prototype._isInCanvas = function ( body ) {
+    canvasRenderer.prototype._isInCanvas = function ( body ) {
         if ( body.type === "rectangle" ) {
             return this.width  >= body.position.x + body.width/2 &&
                  this.height  >= body.position.y + body.height/2;
@@ -161,7 +161,7 @@
      * @param {String} event event name
      * @param {function} callback callback function
      */
-    CanvasRenderer.prototype.on = function ( event, callback ) {
+    canvasRenderer.prototype.on = function ( event, callback ) {
         this.el.addEventListener( event, callback );
     };
 
@@ -171,18 +171,18 @@
      * @param {String} event event name
      * @param {String} functionName name of the callback function
      */
-    CanvasRenderer.prototype.off = function ( event, functionName ) {
+    canvasRenderer.prototype.off = function ( event, functionName ) {
         this.el.removeEventListener( event, functionName );
     };
 
     /**
-     * @namespace
+     * @namespace renderer
      */
-    var Renderer = {
+    var renderer = {
         canvas: function ( element ) {
-            return new CanvasRenderer( element );
+            return new canvasRenderer( element );
         }
     };
 
-    viva.Renderer = Renderer;
+    viva.renderer = renderer;
 

@@ -3,7 +3,7 @@
      * world class which has all the bodies and behaviors to simulate.
      * @class
      */
-    var World = function () {
+    var world = function () {
         this.bodies = [];
         this.behaviors = [];
         this.renderer = undefined;
@@ -21,14 +21,14 @@
         this.onEnd = this._onEnd.bind( this );
     };
 
-    World.prototype.init = function () {
+    world.prototype.init = function () {
 
     };
 
     /**
      * start the world
      */
-    World.prototype.start = function () {
+    world.prototype.start = function () {
         if ( !this.paused ) {
             return;
         }
@@ -44,7 +44,7 @@
      * all the simulation is done in this function by time step of each step function
      * @private
      */
-    World.prototype._step = function() {
+    world.prototype._step = function() {
         var i, body,
             thisStep = now(),
             dt = ( thisStep - this.lastStep ) / 1000; // in seconds
@@ -77,7 +77,7 @@
      *
      * @param {Object} body
      */
-    World.prototype.add = function( body ) {
+    world.prototype.add = function( body ) {
         body.world = this;
         this.bodies.push( body );
     };
@@ -87,7 +87,7 @@
      *
      * @param {Object} behavior
      */
-    World.prototype.apply = function( behavior ) {
+    world.prototype.apply = function( behavior ) {
         this.behaviors.push( behavior );
     };
 
@@ -96,7 +96,7 @@
      *
      * @param {Object} renderer
      */
-    World.prototype.setRenderer = function ( renderer ) {
+    world.prototype.setRenderer = function ( renderer ) {
         this.renderer = renderer;
         this.width = this.renderer.width;
         this.height = this.renderer.height;
@@ -107,14 +107,14 @@
     /**
      * pause simulation
      */
-    World.prototype.pause = function () {
+    world.prototype.pause = function () {
         this.paused = true;
     };
 
     /**
      * resume paused simulation
      */
-    World.prototype.resume = function () {
+    world.prototype.resume = function () {
         this.start();
     };
 
@@ -125,7 +125,7 @@
      * as if the user is holding it
      * @private
      */
-    World.prototype._onClick = function ( e ) {
+    world.prototype._onClick = function ( e ) {
         var offset = this.renderer.el.getBoundingClientRect(),
             x = e.pageX || e.touches[0].pageX - offset.left,
             y = e.pageY || e.touches[0].pageY - offset.top,
@@ -157,7 +157,7 @@
      * there the user is holding a body, moves the body along the pointer
      * @private
      */
-    World.prototype._onMove = function ( e ) {
+    world.prototype._onMove = function ( e ) {
         var offset = this.renderer.el.getBoundingClientRect(),
             x = isMobile ? e.touches[0].pageX - offset.left : e.pageX,
             y = isMobile ? e.touches[0].pageY - offset.top : e.pageY,
@@ -181,15 +181,14 @@
 
         // calculate the velocity of movement
         body.prevPosition.set( x, y );
-        body.move( viva.Vector.create( x, y ) );
-        velocity = viva.Vector.copy( body.position ).sub( body.prevPosition ).scale( 1000 / dt );
+        body.move( viva.vector.create( x, y ) );
+        velocity = viva.vector.copy( body.position ).sub( body.prevPosition ).scale( 1000 / dt );
 
-        viva.Vector.release( body.velocity );
+        viva.vector.release( body.velocity );
         body.velocity = velocity;
 
         this.lastMove = moveTime;
     };
-
 
     /**
      * check if the body is within the boundary
@@ -199,7 +198,7 @@
      * @param {Number} x x-coordinate of mouse pointer
      * @param {Number} y y-coordinate of mouse pointer
      */
-    World.prototype._isMovable = function ( body, x, y ) {
+    world.prototype._isMovable = function ( body, x, y ) {
         var horizontalDistance = body.radius || body.width/2,
             verticalDistance = body.radius || body.height/2,
             boundary = this.renderer.el.getBoundingClientRect();
@@ -225,8 +224,8 @@
      * let the body go
      * @private
      */
-    World.prototype._onEnd = function () {
-        if ( now() - this.lastMove > 200 ) {
+    world.prototype._onEnd = function () {
+        if ( now() - this.lastMove > 300 ) {
             this.movingBody.velocity.reset();
         }
 
@@ -236,4 +235,4 @@
         this.renderer.off( endEvent, this.onEnd );
     };
 
-    viva.World = World;
+    viva.world = world;

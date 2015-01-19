@@ -7,8 +7,8 @@
      * @param {Number} ax acceleration along x-axis
      * @param {Number} ay acceleration along y-axis
      */
-    var ConstantAccelerationBehavior = function ( ax, ay ) {
-        this.acceleration = viva.Vector.create( ax, ay );
+    var ConstantAccelerationbehavior = function ( ax, ay ) {
+        this.acceleration = viva.vector.create( ax, ay );
     };
 
     /**
@@ -16,12 +16,12 @@
      *
      * @param {Object} body a Body object to which apply constant acceleration
      */
-    ConstantAccelerationBehavior.prototype.behave = function ( body ) {
+    ConstantAccelerationbehavior.prototype.behave = function ( body ) {
         if ( body.status !== BODY_STATUS.NORMAL ) {
             return;
         }
-        // return viva.Vector.copy( this.acceleration ).scale( body.mass );
-        body.accelerate( viva.Vector.copy( this.acceleration ) );
+        // return viva.vector.copy( this.acceleration ).scale( body.mass );
+        body.accelerate( viva.vector.copy( this.acceleration ) );
     };
 
 
@@ -32,7 +32,7 @@
      * @param {Object} option boundary info including boundary size, restitution, friction
      *
      * @example
-     * viva.Behavior.BoundaryCollision ({
+     * viva.behavior.BoundaryCollision ({
      *     x: 0,
      *     y: 0,
      *     width: world.renderer.width,
@@ -40,7 +40,7 @@
      *     cor: 1
      * })
      */
-    var BoundaryCollisionBehavior = function ( option ) {
+    var BoundaryCollisionbehavior = function ( option ) {
         this.boundary = {
             top: option.y,
             left: option.x,
@@ -56,7 +56,7 @@
      *
      * @param {Object} body a Body object to which apply constant acceleration
      */
-    BoundaryCollisionBehavior.prototype.behave = function ( body ) {
+    BoundaryCollisionbehavior.prototype.behave = function ( body ) {
         var norm = this._norm( body ),
             v = body.velocity.clone(),
             j = -( 1 + ( body.cor * this.cor ) ) * v.dot( norm ),
@@ -69,7 +69,7 @@
             }
         }
 
-        viva.Vector.release( v, jn );
+        viva.vector.release( v, jn );
     };
 
     /**
@@ -77,7 +77,7 @@
      * @private
      *
      */
-    BoundaryCollisionBehavior.prototype._norm = function ( body ) {
+    BoundaryCollisionbehavior.prototype._norm = function ( body ) {
         var collisionType = this._checkCollisionType( body );
 
         return this._norms[ collisionType ];
@@ -87,7 +87,7 @@
      * check which direction is body colliding against
      * @private
      */
-    BoundaryCollisionBehavior.prototype._checkCollisionType = function ( body ) {
+    BoundaryCollisionbehavior.prototype._checkCollisionType = function ( body ) {
         var x = body.position.x,
             y = body.position.y,
             horizontalDistance = body.radius || body.width/2,
@@ -114,12 +114,12 @@
      * normal vectors
      * @private
      */
-    BoundaryCollisionBehavior.prototype._norms = {
-        top: viva.Vector.create( 0, -1 ),
-        left: viva.Vector.create( -1, 0 ),
-        bottom: viva.Vector.create( 0, -1 ),
-        right: viva.Vector.create( -1, 0 ),
-        zero: viva.Vector.create( 0, 0 ),
+    BoundaryCollisionbehavior.prototype._norms = {
+        top: viva.vector.create( 0, -1 ),
+        left: viva.vector.create( -1, 0 ),
+        bottom: viva.vector.create( 0, -1 ),
+        right: viva.vector.create( -1, 0 ),
+        zero: viva.vector.create( 0, 0 ),
     };
 
 
@@ -128,7 +128,7 @@
      * body collision
      * @class
      */
-    var CollisionBehavior = function () {
+    var Collisionbehavior = function () {
         this.collisions = [];
     };
 
@@ -138,7 +138,7 @@
      *
      * @param {Object} body a body object to check and apply collision
      */
-    CollisionBehavior.prototype.behave = function ( body ) {
+    Collisionbehavior.prototype.behave = function ( body ) {
         this._detect( body );
         this._collisionResponse();
     };
@@ -147,7 +147,7 @@
      * detect collision between a body and other bodies
      * @private
      */
-    CollisionBehavior.prototype._detect = function ( body ) {
+    Collisionbehavior.prototype._detect = function ( body ) {
         var bodies = body.world.bodies,
             len = bodies.length,
             i = 0,
@@ -171,7 +171,7 @@
      * collision response
      * @private
      */
-    CollisionBehavior.prototype._collisionResponse = function () {
+    Collisionbehavior.prototype._collisionResponse = function () {
         var len = this.collisions.length,
             i = 0;
 
@@ -188,7 +188,7 @@
      *
      * @param {Object} collision a collision object
      */
-    CollisionBehavior.prototype._hasCollision = function ( collision ) {
+    Collisionbehavior.prototype._hasCollision = function ( collision ) {
         return this.collisions.some( function ( v ) {
             return ( v.bodyA === collision.bodyA && v.bodyB === collision.bodyB ) ||
                    ( v.bodyB === collision.bodyA && v.bodyA === collision.bodyB );
@@ -203,16 +203,16 @@
      * @param {Object} bodyA
      * @param {Object} bodyB
      */
-    CollisionBehavior.prototype._checkCollision = function ( bodyA, bodyB ) {
+    Collisionbehavior.prototype._checkCollision = function ( bodyA, bodyB ) {
         // TODO: other shapes
         var cA = bodyA.position,
-            cB = viva.Vector.copy( bodyB.position ),
+            cB = viva.vector.copy( bodyB.position ),
             collision,
             point;
 
         if ( bodyA.type === "circle" && bodyB.type === "circle" ) {
             if( cB.sub( cA ).magnitude() <= bodyA.radius + bodyB.radius ) {
-                point = viva.Vector.copy( cB );
+                point = viva.vector.copy( cB );
 
                 if ( cB.magnitude() === 0 ) {
                     return;
@@ -229,7 +229,7 @@
             }
         }
 
-        viva.Vector.release( cB );
+        viva.vector.release( cB );
 
         return collision;
     };
@@ -240,20 +240,20 @@
      *
      * @param {Object} collision
      */
-    CollisionBehavior.prototype._collide = function ( collision ) {
+    Collisionbehavior.prototype._collide = function ( collision ) {
 
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             point = collision.point,
 
-            vab = viva.Vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
+            vab = viva.vector.copy( bodyA.velocity ).sub( bodyB.velocity ), // relative velocity
 
             vab_clone = vab.clone(),
             ma = bodyA.mass,
             mb = bodyB.mass,
-            ra = viva.Vector.copy( point ).sub( bodyA.position ), // a vector from center of A to point of collision
-            rb = viva.Vector.copy( point ).sub( bodyB.position ), // a vector from center of B to point of collision
-            distance = viva.Vector.copy( bodyA.position ).sub( bodyB.position ), // vector from center point of A to center point of B
+            ra = viva.vector.copy( point ).sub( bodyA.position ), // a vector from center of A to point of collision
+            rb = viva.vector.copy( point ).sub( bodyB.position ), // a vector from center of B to point of collision
+            distance = viva.vector.copy( bodyA.position ).sub( bodyB.position ), // vector from center point of A to center point of B
             n = distance.scale( 1 / distance.magnitude() ), // unit normal vector
             vn = vab.projection( n ), // relative velocity projected on normal vector
             vt = vab.sub( vn ), // tangential velocity
@@ -263,19 +263,19 @@
             Ia = ma * bodyA.radius * bodyA.radius / 2, // moment of inertia
             Ib = mb * bodyB.radius * bodyB.radius / 2,
 
-            raClone = viva.Vector.copy( ra ),
-            rbClone = viva.Vector.copy( rb ),
-            raClone2 = viva.Vector.copy( ra ),
-            rbClone2 = viva.Vector.copy( rb ),
+            raClone = viva.vector.copy( ra ),
+            rbClone = viva.vector.copy( rb ),
+            raClone2 = viva.vector.copy( ra ),
+            rbClone2 = viva.vector.copy( rb ),
 
             Ira = raClone.scale( raClone.cross( n ) / Ia ),
             Irb = rbClone.scale( rbClone.cross( n ) / Ib ),
-            n_copy = viva.Vector.copy( n ),
+            n_copy = viva.vector.copy( n ),
 
             J = - (1 + cor) * vn.magnitude() / ( n.dot( n ) * ( 1/ma + 1/mb ) + n_copy.dot( Ira.add( Irb ) ) ), // impulse
 
-            Jna = viva.Vector.copy( n ).scale( J ),
-            Jnb = viva.Vector.copy( n ).scale( J ),
+            Jna = viva.vector.copy( n ).scale( J ),
+            Jnb = viva.vector.copy( n ).scale( J ),
 
             wa = ra.scale( 1/Ia ).cross( Jna ), // angular velocity change
             wb = rb.scale( 1/Ib ).cross( Jnb ),
@@ -323,8 +323,8 @@
             bodyB.angularVelocity += wtb;
         }
 
-        viva.Vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
-        viva.Vector.release( fn,  Jta, Jtb );
+        viva.vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
+        viva.vector.release( fn,  Jta, Jtb );
 
         this._adjustBodyPosition( collision );
 
@@ -337,12 +337,12 @@
      *
      * @param {Object} collision
      */
-    CollisionBehavior.prototype._adjustBodyPosition = function ( collision ) {
+    Collisionbehavior.prototype._adjustBodyPosition = function ( collision ) {
 
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
-            cA = viva.Vector.copy( bodyA.position ),
-            cB = viva.Vector.copy( bodyB.position ),
+            cA = viva.vector.copy( bodyA.position ),
+            cB = viva.vector.copy( bodyB.position ),
             distance = cB.sub(cA),
             overlap = bodyA.radius + bodyB.radius - distance.magnitude(),
             ratioA = bodyA.radius/( bodyA.radius + bodyB.radius ),
@@ -372,24 +372,24 @@
             }
         }
 
-        viva.Vector.release( cA );
-        viva.Vector.release( cB );
+        viva.vector.release( cA );
+        viva.vector.release( cB );
     };
 
     /**
      * @namespace
      */
-    var Behavior = {
+    var behavior = {
         ConstantAcceleration: function ( ax, ay ) {
-            return new ConstantAccelerationBehavior( ax, ay );
+            return new ConstantAccelerationbehavior( ax, ay );
         },
         BoundaryCollision: function ( boundary ) {
-            return new BoundaryCollisionBehavior( boundary );
+            return new BoundaryCollisionbehavior( boundary );
         },
         Collision: function () {
-            return new CollisionBehavior();
+            return new Collisionbehavior();
         }
     };
 
-    viva.Behavior = Behavior;
+    viva.behavior = behavior;
 

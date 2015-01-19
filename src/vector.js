@@ -1,8 +1,8 @@
 
     /**
      * 2D vector
-     * @typedef {Object} Vector
-     * @type {Vector}
+     * @typedef {Object} vector
+     * @type {vector}
      * @property {number} x x-component of a 2d vector
      * @property {number} y y-component of a 2d vector
      */
@@ -12,7 +12,7 @@
      * @param {number} x
      * @param {number} y
      */
-    var Vector = function ( x, y ) {
+    var vector = function ( x, y ) {
         this.x = x || 0;
         this.y = y || 0;
     };
@@ -22,7 +22,7 @@
      *
      * @return this
      */
-    Vector.prototype.add = function() {
+    vector.prototype.add = function() {
         for ( var i = 0; i < arguments.length; i++ ) {
             this.x += arguments[ i ].x;
             this.y += arguments[ i ].y;
@@ -36,7 +36,7 @@
      *
      * @return this
      */
-    Vector.prototype.sub = function () {
+    vector.prototype.sub = function () {
         for ( var i = 0; i < arguments.length; i++ ) {
             this.x -= arguments[ i ].x;
             this.y -= arguments[ i ].y;
@@ -51,7 +51,7 @@
      *
      * @return this
      */
-    Vector.prototype.scale = function( constant ) {
+    vector.prototype.scale = function( constant ) {
         this.x *= constant;
         this.y *= constant;
 
@@ -63,7 +63,7 @@
      *
      * @return {number} dot product
      */
-    Vector.prototype.dot = function ( vector ) {
+    vector.prototype.dot = function ( vector ) {
         return this.x * vector.x + this.y * vector.y;
     };
 
@@ -72,7 +72,7 @@
      *
      * @return {number} cross product
      */
-    Vector.prototype.cross = function( vector ) {
+    vector.prototype.cross = function( vector ) {
         return this.x * vector.y - this.y * vector.x;
     };
 
@@ -81,7 +81,7 @@
      *
      * @return {number}
      */
-    Vector.prototype.mult = function( vector ) {
+    vector.prototype.mult = function( vector ) {
         this.x *= vector.x;
         this.y *= vector.y;
 
@@ -93,10 +93,10 @@
      *
      * @return {number} projection vector
      */
-    Vector.prototype.projection = function ( vector ) {
+    vector.prototype.projection = function ( vector ) {
         var dotProd = this.dot( vector ),
             magnitude = vector.magnitude(),
-            result = viva.Vector.copy( vector );
+            result = viva.vector.copy( vector );
 
         result.scale( dotProd / ( magnitude * magnitude ) );
 
@@ -108,7 +108,7 @@
      *
      * @return {number} angle in degree
      */
-    Vector.prototype.angleBetween = function ( vector ) {
+    vector.prototype.angleBetween = function ( vector ) {
         if ( this.isZero() || vector.isZero() ) {
             return 0;
         }
@@ -119,7 +119,7 @@
     /**
      * normalize
      */
-    Vector.prototype.normalize = function () {
+    vector.prototype.normalize = function () {
         this.scale( 1/this.magnitude() );
 
         return this;
@@ -128,7 +128,7 @@
     /**
      * get the magnitude of this vector
      */
-    Vector.prototype.magnitude = function () {
+    vector.prototype.magnitude = function () {
         return Math.sqrt( this.x * this.x + this.y * this.y );
     };
 
@@ -138,7 +138,7 @@
      *                       sinA, cosA ]
      * @param {number} angle in degree
      */
-    Vector.prototype.rotate = function ( angle ) {
+    vector.prototype.rotate = function ( angle ) {
         var cosA = Math.cos( angle ),
             sinA = Math.sin( angle );
 
@@ -152,7 +152,7 @@
     /**
      * reset this vector to ( 0, 0 )
      */
-    Vector.prototype.reset = function () {
+    vector.prototype.reset = function () {
         this.x = 0;
         this.y = 0;
 
@@ -164,12 +164,12 @@
      * @param {number} x
      * @param {number} y
      */
-    Vector.prototype.set = function ( x, y ) {
+    vector.prototype.set = function ( x, y ) {
         if ( x === undefined && y === undefined ) {
             return this;
         }
 
-        if ( x.constructor === Vector ) {
+        if ( x.constructor === vector ) {
             y = x.y;
             x = x.x;
         }
@@ -184,7 +184,7 @@
      * isEqual
      * @return {boolean}
      */
-    Vector.prototype.isEqual = function ( vector ) {
+    vector.prototype.isEqual = function ( vector ) {
         return this.x === vector.x && this.y === vector.y;
     };
 
@@ -192,45 +192,45 @@
      * isZero
      * @return {boolean}
      */
-    Vector.prototype.isZero = function () {
+    vector.prototype.isZero = function () {
         return this.x === 0 && this.y === 0;
     };
 
-    Vector.prototype.print = function ( tag ) {
+    vector.prototype.print = function ( tag ) {
         return (tag ? tag + " :: " : "" ) + "{ x: " + this.x + ", y: " +  this.y + "}";
     };
 
     /**
      * clone
-     * @return {Vector} new vector from vector pool with same xy components
+     * @return {vector} new vector from vector pool with same xy components
      */
-    Vector.prototype.clone = function () {
-        return viva.Vector.copy( this );
+    vector.prototype.clone = function () {
+        return viva.vector.copy( this );
     };
 
     var vectorPool = [];
 
-    var VectorManager = {
+    var vectorManager = {
 
-        initVectorPool: function () {
+        initvectorPool: function () {
             var index,
                 i;
 
             for ( i = 0; i < 16; i++ ) {
-                index = vectorPool.push( new Vector() );
+                index = vectorPool.push( new vector() );
             }
         },
-        expandVectorPool: function () {
+        expandvectorPool: function () {
             var i,
                 newLength = 200;
 
             for ( i = vectorPool.length; i < newLength; i++ ) {
-                vectorPool.push( new Vector() );
+                vectorPool.push( new vector() );
             }
         },
         create: function ( x, y ) {
             if ( vectorPool.length === 0 ) {
-                VectorManager.expandVectorPool();
+                vectorManager.expandvectorPool();
             }
             vectorcnt++;
             return vectorPool.pop().set( x, y );
@@ -251,7 +251,7 @@
         },
         copy: function ( vector ) {
             if ( vectorPool.length === 0 ) {
-                VectorManager.expandVectorPool();
+                vectorManager.expandvectorPool();
             }
             vectorcnt++;
             return vectorPool.pop().set( vector.x, vector.y );
@@ -259,8 +259,8 @@
     };
 
 
-    viva.Vector = VectorManager;
-    viva.Vector.initVectorPool();
+    viva.vector = vectorManager;
+    viva.vector.initvectorPool();
 
     window.vectorcnt = 0;
 
