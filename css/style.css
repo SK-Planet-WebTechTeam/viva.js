@@ -1,19 +1,20 @@
 body{
 	margin:0;
-	padding:0;
+	padding:1px;
+	overflow:hidden;
 	background: #FFB300;
+	min-height: 100%;
 }
 html{
-  height: 100%;
-}
-body {
-  min-height: 100%;
+  	height: 100%;
 }
 
 .logo {
 	font-family: Sail;
 	width:100%;
 	height:100%;
+	z-index:100;
+	position: absolute;
 }
 
 .logo h1 {
@@ -21,21 +22,21 @@ body {
 	text-align:center;
 	font-size: 100px;
 	color:#fff;
-	margin:0;
-	position:absolute;
-	top:40vh;
+	margin:45% 0 0 0;
+	padding:0;
 	font-weight: normal;
 }
 
-.logo a {
-	position: relative;
-	top:50vh;
+.logo p {
 	margin: 0 auto;
+	text-align: center;
+}
+
+.logo a {
 	text-decoration: underline;
 	color:#fff;
 	font-size: 28px;
 	text-align: center;
-	display: block
 }
 
 .arrow-down {
@@ -43,4 +44,12 @@ body {
 	border-bottom: 6px solid transparent;
 	border-top: 6px solid transparent;
 	display:inline-block;
+}
+
+.example{
+	margin: 0;
+	padding: 0;
+	position:absolute;
+	top:0;
+	left:0;
 }
