@@ -15,6 +15,7 @@
         this.movingBody = null;
         this.lastStep = 0;
         this.lastMove = 0;
+        this.uuid = 0;
 
         /* event handlers */
         this.onMove = this._onMove.bind( this );
@@ -79,6 +80,7 @@
      */
     world.prototype.add = function( body ) {
         body.world = this;
+        body.uuid = this.uuid++;
         this.bodies.push( body );
     };
 
