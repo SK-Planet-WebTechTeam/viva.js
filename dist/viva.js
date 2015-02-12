@@ -86,7 +86,7 @@
 	 * everything including world, body, behavior, etc should be called as viva.World, etc.
 	 * @namespace
 	 */
-    window.viva = {};
+    var viva = window.viva = {};
 
 
 
@@ -364,7 +364,7 @@
     viva.vector = vectorManager;
     viva.vector.initvectorPool();
 
-    window.vectorcnt = 0;
+    var vectorcnt = window.vectorcnt = 0;
 
 
 
@@ -396,8 +396,6 @@
         this.right = x + width;
         this.bottom = y + height;
     };
-
-
 
     viva.AABB = AABB;
 
@@ -551,7 +549,7 @@
      * @private
      */
     Collisionbehavior.prototype._detect = function ( body ) {
-        var bodies = body.world.bodies,
+        var bodies = body.world.quadtree.retrieve( body ),// body.world.bodies,
             len = bodies.length,
             i = 0,
             otherBody,
@@ -630,24 +628,21 @@
             }
         }
 
-        // if ( bodyA.type === "rectangle" || bodyB.type === "rectangle" ) {
-        //     if( bodyA.aabb.overlap( bodyB.aabb ) ) {
-        //         point = viva.vector.copy( cB );
+        if ( bodyA.type === "rectangle" || bodyB.type === "rectangle" ) {
+            if( bodyA.aabb.overlap( bodyB.aabb ) ) {
+                point = viva.vector.copy( cB );
 
-        //         if ( cB.magnitude() === 0 ) {
-        //             return;
-        //         }
+                if ( cB.magnitude() === 0 ) {
+                    return;
+                }
 
-        //         collision = {
-        //             bodyA : bodyA,
-        //             bodyB : bodyB,
-        //             point : point.scale( (bodyA.aabb.width/2) / cB.magnitude() ).add( cA )
-        //         };
-
-        //         console.log( point.print() );
-
-        //     }
-        // }
+                collision = {
+                    bodyA : bodyA,
+                    bodyB : bodyB,
+                    point : point.scale( (bodyA.aabb.width/2) / cB.magnitude() ).add( cA )
+                };
+            }
+        }
 
         viva.vector.release( cB );
 
@@ -932,6 +927,8 @@
         this.prevPosition = this.position;
         this.position = vector;
 
+        this._updateAABB();
+
         return this;
     };
 
@@ -1029,9 +1026,7 @@
 
         this.angle += this.angularVelocity * dt;
 
-        viva.vector.release( prevVelocity );
-        viva.vector.release( a );
-        viva.vector.release( prevAcceleration );
+        viva.vector.releaseAll( [ prevVelocity, a, prevAcceleration ] );
 
         this._updateAABB();
         return this;
@@ -1096,19 +1091,20 @@
                 tr = center.clone().add( {x: + this.width/2, y: -this.height/2} ).sub( center ),
                 bl = center.clone().add( {x: - this.width/2, y: this.height/2} ).sub( center ),
                 br = center.clone().add( {x: + this.width/2, y: this.height/2} ).sub( center ),
-                degree_rad = Math.PI / 180;
+                degree_rad = Math.PI / 180,
+                angle = this.angle % (360 * degree_rad);
 
-            if ( this.angle <= 90* degree_rad ) {
+            if ( angle <= 90 * degree_rad ) {
                 top_most = tl.rotate( this.angle );
                 left_most = bl.rotate( this.angle );
                 bottom_most = br.rotate( this.angle );
                 right_most = tr.rotate( this.angle );
-            } else if ( this.angle <= 180* degree_rad ) {
+            } else if ( angle <= 180 * degree_rad ) {
                 top_most = bl.rotate( this.angle );
                 left_most = br.rotate( this.angle );
                 bottom_most = tr.rotate( this.angle );
                 right_most = tl.rotate( this.angle );
-            } else if ( this.angle <= 270* degree_rad ) {
+            } else if ( angle <= 270 * degree_rad ) {
                 top_most = br.rotate( this.angle );
                 left_most = tr.rotate( this.angle );
                 bottom_most = tl.rotate( this.angle );
@@ -1127,12 +1123,7 @@
 
             this.aabb.set( left_most.x, top_most.y, right_most.x - left_most.x, bottom_most.y - top_most.y );
 
-            viva.vector.release( tl );
-            viva.vector.release( tr );
-            viva.vector.release( bl );
-            viva.vector.release( br );
-            viva.vector.release( center );
-
+            viva.vector.releaseAll( [ tl, tr, bl, br, center ] );
         }
     };
 
@@ -1211,9 +1202,130 @@
     viva.body.initPool();
 
 
-	var support = function ( normal, body ) {
+    // var support = function ( normal, body ) {
 
-	}
+    // }
+var Quadtree = function ( bound ) {
+    this.root = new QuadNode( 0, bound );
+    this.bound = bound;
+};
+
+Quadtree.prototype.insert = function ( body ) {
+    this.root.insert( body );
+};
+
+Quadtree.prototype.retrieve = function ( body ) {
+    return this.root.retrieve( body );
+};
+
+Quadtree.prototype.clear = function () {
+    this.root.clear();
+};
+
+var QuadNode = function ( level, bound ) {
+    this.max_objects = 10;
+    this.max_level = 5;
+    this.bodies = [];
+    this.children = [];
+    this.aabb = bound;
+    this.level = level;
+};
+
+QuadNode.TOP_LEFT = 0;
+QuadNode.TOP_RIGHT = 1;
+QuadNode.BOTTOM_RIGHT = 2;
+QuadNode.BOTTOM_LEFT = 3;
+
+QuadNode.prototype.split = function () {
+    var width = this.aabb.width/2,
+        height = this.aabb.height/2,
+        x = this.aabb.x,
+        y = this.aabb.y;
+
+    this.children[0] = new QuadNode( this.level + 1, new viva.AABB( x, y, width, height ) );
+    this.children[1] = new QuadNode( this.level + 1, new viva.AABB( x + width, y, width, height ) );
+    this.children[2] = new QuadNode( this.level + 1, new viva.AABB( x + width, y + height, width, height ) );
+    this.children[3] = new QuadNode( this.level + 1, new viva.AABB( x, y + height, width, height ) );
+};
+
+QuadNode.prototype.findIndex = function ( body ) {
+    if ( !body ) {
+        return;
+    }
+
+    var bodyIsInTopHalf = body.position.y < this.aabb.y + this.aabb.height/2,
+        bodyIsInBottomHalf = !bodyIsInTopHalf,
+        bodyIsInLeftHalf = body.position.x < this.aabb.x + this.aabb.width/2,
+        bodyIsInRightHalf = !bodyIsInLeftHalf;
+
+    if ( bodyIsInTopHalf && bodyIsInLeftHalf ) {
+        return QuadNode.TOP_LEFT;
+    }
+    if ( bodyIsInTopHalf && bodyIsInRightHalf ) {
+        return QuadNode.TOP_RIGHT;
+    }
+    if ( bodyIsInBottomHalf && bodyIsInLeftHalf ) {
+        return QuadNode.BOTTOM_LEFT;
+    }
+    if ( bodyIsInBottomHalf && bodyIsInRightHalf ) {
+        return QuadNode.BOTTOM_RIGHT;
+    }
+};
+
+QuadNode.prototype.insert = function ( body ) {
+    if ( this.bodies.length <= this.max_objects && this.children.length === 0 ) {
+        this.bodies.push( body );
+        return;
+    }
+
+    var index, i, len;
+    if ( this.bodies.length > this.max_objects ) {
+        this.bodies.push( body );
+        this.split();
+
+        i = 0;
+        len = this.bodies.length;
+
+        for ( i = 0; i < len; i++ ) {
+            body = this.bodies.pop();
+            index = this.findIndex( body );
+            this.children[ index ].insert( body );
+        }
+
+        return;
+    }
+
+    if ( this.children.length > 0 ) {
+        index = this.findIndex( body );
+        this.children[ index ].insert( body );
+    }
+};
+
+QuadNode.prototype.retrieve = function ( body ) {
+    var index = this.findIndex( body );
+
+    if ( this.children.length > 0 && index >= 0 ){
+        return this.children[ index ].retrieve( body );
+    }
+
+    return this.bodies;
+};
+
+QuadNode.prototype.clear = function () {
+    this.bodies = [];
+
+    if (this.children.length > 0 ) {
+        this.children[ 0 ].clear();
+        this.children[ 1 ].clear();
+        this.children[ 2 ].clear();
+        this.children[ 3 ].clear();
+        this.children = [];
+    }
+};
+
+viva.Quadtree = Quadtree;
+
+
 
     var isDOMElement = function ( obj ) {
         return ( typeof obj === "object" ) && ( obj.nodeType === 1 ) &&
@@ -1267,8 +1379,7 @@
      */
     canvasRenderer.prototype.draw = function ( bodies ) {
         var i,
-            len = bodies.length,
-            _this = this;
+            len = bodies.length;
 
         this.ctx.strokeStyle = "#000";
         this.ctx.lineWidth = 1;
@@ -1331,8 +1442,8 @@
 
         this.ctx.restore();
         /* AABB */
-        this.ctx.rect ( body.aabb.x, body.aabb.y, body.aabb.width, body.aabb.height );
-        this.ctx.stroke();
+        // this.ctx.rect ( body.aabb.x, body.aabb.y, body.aabb.width, body.aabb.height );
+        // this.ctx.stroke();
     };
 
     /**
@@ -1425,6 +1536,8 @@
         this.lastMove = 0;
         this.uuid = 0;
 
+        this.quadtree = new viva.Quadtree( new viva.AABB( 0, 0, 0, 0 ) );
+
         /* event handlers */
         this.onMove = this._onMove.bind( this );
         this.onEnd = this._onEnd.bind( this );
@@ -1467,9 +1580,11 @@
             }
         }
 
+        this.quadtree.clear();
         for ( i = 0; i < this.bodies.length; i++ ) {
             body = this.bodies[ i ];
             body.step( dt );
+            this.quadtree.insert( body );
         }
 
         if ( this.renderer ) {
@@ -1490,6 +1605,7 @@
         body.world = this;
         body.uuid = this.uuid++;
         this.bodies.push( body );
+        this.quadtree.insert( body );
     };
 
     /**
@@ -1512,6 +1628,7 @@
         this.height = this.renderer.height;
 
         this.renderer.on( startEvent, this._onClick.bind( this ) );
+        this.quadtree.bound.set( 0, 0, this.width, this.height );
     };
 
     /**

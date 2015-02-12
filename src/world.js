@@ -17,6 +17,8 @@
         this.lastMove = 0;
         this.uuid = 0;
 
+        this.quadtree = new viva.Quadtree( new viva.AABB( 0, 0, 0, 0 ) );
+
         /* event handlers */
         this.onMove = this._onMove.bind( this );
         this.onEnd = this._onEnd.bind( this );
@@ -59,9 +61,11 @@
             }
         }
 
+        this.quadtree.clear();
         for ( i = 0; i < this.bodies.length; i++ ) {
             body = this.bodies[ i ];
             body.step( dt );
+            this.quadtree.insert( body );
         }
 
         if ( this.renderer ) {
@@ -82,6 +86,7 @@
         body.world = this;
         body.uuid = this.uuid++;
         this.bodies.push( body );
+        this.quadtree.insert( body );
     };
 
     /**
@@ -104,6 +109,7 @@
         this.height = this.renderer.height;
 
         this.renderer.on( startEvent, this._onClick.bind( this ) );
+        this.quadtree.bound.set( 0, 0, this.width, this.height );
     };
 
     /**

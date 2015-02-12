@@ -270,7 +270,7 @@
     viva.vector = vectorManager;
     viva.vector.initvectorPool();
 
-    window.vectorcnt = 0;
+    var vectorcnt = window.vectorcnt = 0;
 
 
 

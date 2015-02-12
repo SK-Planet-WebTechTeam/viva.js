@@ -26,6 +26,4 @@
         this.bottom = y + height;
     };
 
-
-
     viva.AABB = AABB;

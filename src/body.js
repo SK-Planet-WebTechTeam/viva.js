@@ -216,9 +216,7 @@
 
         this.angle += this.angularVelocity * dt;
 
-        viva.vector.release( prevVelocity );
-        viva.vector.release( a );
-        viva.vector.release( prevAcceleration );
+        viva.vector.releaseAll( [ prevVelocity, a, prevAcceleration ] );
 
         this._updateAABB();
         return this;
@@ -283,19 +281,20 @@
                 tr = center.clone().add( {x: + this.width/2, y: -this.height/2} ).sub( center ),
                 bl = center.clone().add( {x: - this.width/2, y: this.height/2} ).sub( center ),
                 br = center.clone().add( {x: + this.width/2, y: this.height/2} ).sub( center ),
-                degree_rad = Math.PI / 180;
+                degree_rad = Math.PI / 180,
+                angle = this.angle % (360 * degree_rad);
 
-            if ( this.angle <= 90* degree_rad ) {
+            if ( angle <= 90 * degree_rad ) {
                 top_most = tl.rotate( this.angle );
                 left_most = bl.rotate( this.angle );
                 bottom_most = br.rotate( this.angle );
                 right_most = tr.rotate( this.angle );
-            } else if ( this.angle <= 180* degree_rad ) {
+            } else if ( angle <= 180 * degree_rad ) {
                 top_most = bl.rotate( this.angle );
                 left_most = br.rotate( this.angle );
                 bottom_most = tr.rotate( this.angle );
                 right_most = tl.rotate( this.angle );
-            } else if ( this.angle <= 270* degree_rad ) {
+            } else if ( angle <= 270 * degree_rad ) {
                 top_most = br.rotate( this.angle );
                 left_most = tr.rotate( this.angle );
                 bottom_most = tl.rotate( this.angle );
@@ -314,12 +313,7 @@
 
             this.aabb.set( left_most.x, top_most.y, right_most.x - left_most.x, bottom_most.y - top_most.y );
 
-            viva.vector.release( tl );
-            viva.vector.release( tr );
-            viva.vector.release( bl );
-            viva.vector.release( br );
-            viva.vector.release( center );
-
+            viva.vector.releaseAll( [ tl, tr, bl, br, center ] );
         }
     };
 

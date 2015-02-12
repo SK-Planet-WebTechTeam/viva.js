@@ -148,7 +148,7 @@
      * @private
      */
     Collisionbehavior.prototype._detect = function ( body ) {
-        var bodies = body.world.bodies,
+        var bodies = body.world.quadtree.retrieve( body ),// body.world.bodies,
             len = bodies.length,
             i = 0,
             otherBody,
@@ -227,24 +227,21 @@
             }
         }
 
-        // if ( bodyA.type === "rectangle" || bodyB.type === "rectangle" ) {
-        //     if( bodyA.aabb.overlap( bodyB.aabb ) ) {
-        //         point = viva.vector.copy( cB );
+        if ( bodyA.type === "rectangle" || bodyB.type === "rectangle" ) {
+            if( bodyA.aabb.overlap( bodyB.aabb ) ) {
+                point = viva.vector.copy( cB );
 
-        //         if ( cB.magnitude() === 0 ) {
-        //             return;
-        //         }
+                if ( cB.magnitude() === 0 ) {
+                    return;
+                }
 
-        //         collision = {
-        //             bodyA : bodyA,
-        //             bodyB : bodyB,
-        //             point : point.scale( (bodyA.aabb.width/2) / cB.magnitude() ).add( cA )
-        //         };
-
-        //         console.log( point.print() );
-
-        //     }
-        // }
+                collision = {
+                    bodyA : bodyA,
+                    bodyB : bodyB,
+                    point : point.scale( (bodyA.aabb.width/2) / cB.magnitude() ).add( cA )
+                };
+            }
+        }
 
         viva.vector.release( cB );
 
