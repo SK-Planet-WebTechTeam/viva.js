@@ -80,6 +80,7 @@
         return dest;
     };
 
+
 	/**
 	 * namespace for viva.js.
 	 * everything including world, body, behavior, etc should be called as viva.World, etc.
@@ -233,11 +234,13 @@
      */
     vector.prototype.rotate = function ( angle ) {
         var cosA = Math.cos( angle ),
-            sinA = Math.sin( angle );
+            sinA = Math.sin( angle ),
+            x = this.x,
+            y = this.y;
 
 
-        this.x = cosA * this.x - sinA * this.y;
-        this.y = sinA * this.x + cosA * this.y;
+        this.x = cosA * x - sinA * y;
+        this.y = sinA * x + cosA * y;
 
         return this;
     };
@@ -328,10 +331,16 @@
             vectorcnt++;
             return vectorPool.pop().set( x, y );
         },
-        release: function () {
+        release: function ( vector ) {
+            vectorPool.push( vector );
+            vectorcnt--;
+            vector.reset();
+        },
+        releaseAll: function ( vectors ) {
             var vector;
-            for ( var i = 0; i < arguments.length; i++ ) {
-                vector = arguments[ i ];
+            vectors.length;
+            for ( var i = 0; i < vectors.length; i++ ) {
+                vector = vectors[ i ];
 
                 if ( !vector ) {
                     continue;
@@ -359,6 +368,38 @@
 
 
 
+
+
+    var AABB = function ( x, y, width, height ) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.left = x;
+        this.top = y;
+        this.right = x + width;
+        this.bottom = y + height;
+    };
+
+    AABB.prototype.overlap = function ( aabb ) {
+        return ( ( this.right >= aabb.left && this.right <= aabb.right ) || ( aabb.right >= this.left && aabb.right <= this.right ) ) &&
+                ( ( this.bottom >= aabb.top && this.bottom <= aabb.bottom ) || ( aabb.bottom >= this.top && aabb.bottom <= this.bottom ) );
+    };
+
+    AABB.prototype.set = function ( x, y, width, height ) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.left = x;
+        this.top = y;
+        this.right = x + width;
+        this.bottom = y + height;
+    };
+
+
+
+    viva.AABB = AABB;
 
 
 
@@ -431,7 +472,7 @@
             }
         }
 
-        viva.vector.release( v, jn );
+        viva.vector.releaseAll( [ v, jn ] );
     };
 
     /**
@@ -584,12 +625,29 @@
                     bodyA : bodyA,
                     bodyB : bodyB,
                     point : point.scale( bodyA.radius / cB.magnitude() ).add( cA )
-
-                    // point : point.scale( bodyA.radius / ( bodyA.radius + bodyB.radius ) ).add( cA )
                 };
 
             }
         }
+
+        // if ( bodyA.type === "rectangle" || bodyB.type === "rectangle" ) {
+        //     if( bodyA.aabb.overlap( bodyB.aabb ) ) {
+        //         point = viva.vector.copy( cB );
+
+        //         if ( cB.magnitude() === 0 ) {
+        //             return;
+        //         }
+
+        //         collision = {
+        //             bodyA : bodyA,
+        //             bodyB : bodyB,
+        //             point : point.scale( (bodyA.aabb.width/2) / cB.magnitude() ).add( cA )
+        //         };
+
+        //         console.log( point.print() );
+
+        //     }
+        // }
 
         viva.vector.release( cB );
 
@@ -603,7 +661,6 @@
      * @param {Object} collision
      */
     Collisionbehavior.prototype._collide = function ( collision ) {
-
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             point = collision.point,
@@ -622,8 +679,8 @@
             cor = bodyA.cor * bodyB.cor, // coefficient of restitution
             cof = bodyA.cof * bodyB.cof, // coefficient of friction
 
-            Ia = ma * bodyA.radius * bodyA.radius / 2, // moment of inertia
-            Ib = mb * bodyB.radius * bodyB.radius / 2,
+            Ia = ma * ra.magnitude() * ra.magnitude() / 2, // moment of inertia
+            Ib = mb * rb.magnitude() * rb.magnitude() / 2,
 
             raClone = viva.vector.copy( ra ),
             rbClone = viva.vector.copy( rb ),
@@ -685,8 +742,8 @@
             bodyB.angularVelocity += wtb;
         }
 
-        viva.vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
-        viva.vector.release( fn,  Jta, Jtb );
+        viva.vector.releaseAll( [ vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point, vab_clone ] );
+        viva.vector.releaseAll( [ fn,  Jta, Jtb ] );
 
         this._adjustBodyPosition( collision );
 
@@ -856,9 +913,11 @@
         this.width = option.width;
         this.height = option.height;
         this.radius = option.radius;
-        this.world = undefined;
         this.color = option.color;
+        this.aabb = new viva.AABB();
         this.status = BODY_STATUS.NORMAL;
+        this.world = undefined;
+        this.uuid = -1;
 
         this.externalForce = [];
     };
@@ -969,12 +1028,12 @@
         // this.position.add( prevVelocity.add( this.velocity ).scale( dt / 2 ) );
 
         this.angle += this.angularVelocity * dt;
-        // console.log ( this.angularVelocity );
 
         viva.vector.release( prevVelocity );
         viva.vector.release( a );
         viva.vector.release( prevAcceleration );
 
+        this._updateAABB();
         return this;
     };
 
@@ -1022,6 +1081,61 @@
         }
     };
 
+    body.prototype._updateAABB = function () {
+        if ( this.type === "circle" ) {
+            this.aabb.set( this.position.x - this.radius, this.position.y - this.radius, this.radius * 2, this.radius * 2 );
+        }
+
+        if ( this.type === "rectangle" ) {
+            var top_most,
+                left_most,
+                bottom_most,
+                right_most,
+                center = this.position.clone(),
+                tl = center.clone().add( {x: - this.width/2, y: -this.height/2} ).sub( center ),
+                tr = center.clone().add( {x: + this.width/2, y: -this.height/2} ).sub( center ),
+                bl = center.clone().add( {x: - this.width/2, y: this.height/2} ).sub( center ),
+                br = center.clone().add( {x: + this.width/2, y: this.height/2} ).sub( center ),
+                degree_rad = Math.PI / 180;
+
+            if ( this.angle <= 90* degree_rad ) {
+                top_most = tl.rotate( this.angle );
+                left_most = bl.rotate( this.angle );
+                bottom_most = br.rotate( this.angle );
+                right_most = tr.rotate( this.angle );
+            } else if ( this.angle <= 180* degree_rad ) {
+                top_most = bl.rotate( this.angle );
+                left_most = br.rotate( this.angle );
+                bottom_most = tr.rotate( this.angle );
+                right_most = tl.rotate( this.angle );
+            } else if ( this.angle <= 270* degree_rad ) {
+                top_most = br.rotate( this.angle );
+                left_most = tr.rotate( this.angle );
+                bottom_most = tl.rotate( this.angle );
+                right_most = bl.rotate( this.angle );
+            } else {
+                top_most = tr.rotate( this.angle );
+                left_most = tl.rotate( this.angle );
+                bottom_most = bl.rotate( this.angle );
+                right_most = br.rotate( this.angle );
+            }
+
+            top_most.add( center );
+            left_most.add( center );
+            bottom_most.add( center );
+            right_most.add( center );
+
+            this.aabb.set( left_most.x, top_most.y, right_most.x - left_most.x, bottom_most.y - top_most.y );
+
+            viva.vector.release( tl );
+            viva.vector.release( tr );
+            viva.vector.release( bl );
+            viva.vector.release( br );
+            viva.vector.release( center );
+
+        }
+    };
+
     /**
      * set body's status.
      *
@@ -1053,6 +1167,7 @@
         this.height = option.height;
         this.radius = option.radius;
         this.color = option.color;
+        this._updateAABB();
 
         return this;
     };
@@ -1078,6 +1193,7 @@
         this.radius = 0;
         // this.world = undefined;
         this.color = "fff";
+        this.uuid = -1;
 
         return this;
     };
@@ -1094,6 +1210,10 @@
     viva.body = BodyManager;
     viva.body.initPool();
 
+
+	var support = function ( normal, body ) {
+
+	}
 
     var isDOMElement = function ( obj ) {
         return ( typeof obj === "object" ) && ( obj.nodeType === 1 ) &&
@@ -1191,7 +1311,6 @@
 
         if ( body.type === "rectangle" ) {
             this.ctx.rect ( Math.round( -width/2 ), Math.round( -height/2 ), width, height );
-
         } else if ( body.type === "circle" ) {
             this.ctx.arc( 0, 0, radius, 0, 2 * Math.PI, false );
         }
@@ -1200,6 +1319,7 @@
         this.ctx.fillStyle = body.color;
         this.ctx.fill();
         // this.ctx.stroke();
+
 
         // if ( body.angle ) {
             this.ctx.beginPath();
@@ -1210,6 +1330,9 @@
         // }
 
         this.ctx.restore();
+        /* AABB */
+        this.ctx.rect ( body.aabb.x, body.aabb.y, body.aabb.width, body.aabb.height );
+        this.ctx.stroke();
     };
 
     /**
@@ -1300,6 +1423,7 @@
         this.movingBody = null;
         this.lastStep = 0;
         this.lastMove = 0;
+        this.uuid = 0;
 
         /* event handlers */
         this.onMove = this._onMove.bind( this );
@@ -1364,6 +1488,7 @@
      */
     world.prototype.add = function( body ) {
         body.world = this;
+        body.uuid = this.uuid++;
         this.bodies.push( body );
     };
 
