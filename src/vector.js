@@ -140,11 +140,13 @@
      */
     vector.prototype.rotate = function ( angle ) {
         var cosA = Math.cos( angle ),
-            sinA = Math.sin( angle );
+            sinA = Math.sin( angle ),
+            x = this.x,
+            y = this.y;
 
 
-        this.x = cosA * this.x - sinA * this.y;
-        this.y = sinA * this.x + cosA * this.y;
+        this.x = cosA * x - sinA * y;
+        this.y = sinA * x + cosA * y;
 
         return this;
     };
@@ -235,10 +237,16 @@
             vectorcnt++;
             return vectorPool.pop().set( x, y );
         },
-        release: function () {
+        release: function ( vector ) {
+            vectorPool.push( vector );
+            vectorcnt--;
+            vector.reset();
+        },
+        releaseAll: function ( vectors ) {
             var vector;
-            for ( var i = 0; i < arguments.length; i++ ) {
-                vector = arguments[ i ];
+            vectors.length;
+            for ( var i = 0; i < vectors.length; i++ ) {
+                vector = vectors[ i ];
 
                 if ( !vector ) {
                     continue;

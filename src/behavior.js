@@ -69,7 +69,7 @@
             }
         }
 
-        viva.vector.release( v, jn );
+        viva.vector.releaseAll( [ v, jn ] );
     };
 
     /**
@@ -222,12 +222,29 @@
                     bodyA : bodyA,
                     bodyB : bodyB,
                     point : point.scale( bodyA.radius / cB.magnitude() ).add( cA )
-
-                    // point : point.scale( bodyA.radius / ( bodyA.radius + bodyB.radius ) ).add( cA )
                 };
 
             }
         }
+
+        // if ( bodyA.type === "rectangle" || bodyB.type === "rectangle" ) {
+        //     if( bodyA.aabb.overlap( bodyB.aabb ) ) {
+        //         point = viva.vector.copy( cB );
+
+        //         if ( cB.magnitude() === 0 ) {
+        //             return;
+        //         }
+
+        //         collision = {
+        //             bodyA : bodyA,
+        //             bodyB : bodyB,
+        //             point : point.scale( (bodyA.aabb.width/2) / cB.magnitude() ).add( cA )
+        //         };
+
+        //         console.log( point.print() );
+
+        //     }
+        // }
 
         viva.vector.release( cB );
 
@@ -241,7 +258,6 @@
      * @param {Object} collision
      */
     Collisionbehavior.prototype._collide = function ( collision ) {
-
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             point = collision.point,
@@ -260,8 +276,8 @@
             cor = bodyA.cor * bodyB.cor, // coefficient of restitution
             cof = bodyA.cof * bodyB.cof, // coefficient of friction
 
-            Ia = ma * bodyA.radius * bodyA.radius / 2, // moment of inertia
-            Ib = mb * bodyB.radius * bodyB.radius / 2,
+            Ia = ma * ra.magnitude() * ra.magnitude() / 2, // moment of inertia
+            Ib = mb * rb.magnitude() * rb.magnitude() / 2,
 
             raClone = viva.vector.copy( ra ),
             rbClone = viva.vector.copy( rb ),
@@ -323,8 +339,8 @@
             bodyB.angularVelocity += wtb;
         }
 
-        viva.vector.release( vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point );
-        viva.vector.release( fn,  Jta, Jtb );
+        viva.vector.releaseAll( [ vab, ra, rb, distance, vn, raClone, rbClone, raClone2, rbClone2, n_copy, Jna, Jnb, point, vab_clone ] );
+        viva.vector.releaseAll( [ fn,  Jta, Jtb ] );
 
         this._adjustBodyPosition( collision );
 
