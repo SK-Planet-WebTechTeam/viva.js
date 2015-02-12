@@ -98,9 +98,11 @@
         this.width = option.width;
         this.height = option.height;
         this.radius = option.radius;
-        this.world = undefined;
         this.color = option.color;
+        this.aabb = new viva.AABB();
         this.status = BODY_STATUS.NORMAL;
+        this.world = undefined;
+        this.uuid = -1;
 
         this.externalForce = [];
     };
@@ -114,6 +116,8 @@
         viva.vector.release( this.prevPosition );
         this.prevPosition = this.position;
         this.position = vector;
+
+        this._updateAABB();
 
         return this;
     };
@@ -211,12 +215,12 @@
         // this.position.add( prevVelocity.add( this.velocity ).scale( dt / 2 ) );
 
         this.angle += this.angularVelocity * dt;
-        // console.log ( this.angularVelocity );
 
         viva.vector.release( prevVelocity );
         viva.vector.release( a );
         viva.vector.release( prevAcceleration );
 
+        this._updateAABB();
         return this;
     };
 
@@ -264,6 +268,61 @@
         }
     };
 
+    body.prototype._updateAABB = function () {
+        if ( this.type === "circle" ) {
+            this.aabb.set( this.position.x - this.radius, this.position.y - this.radius, this.radius * 2, this.radius * 2 );
+        }
+
+        if ( this.type === "rectangle" ) {
+            var top_most,
+                left_most,
+                bottom_most,
+                right_most,
+                center = this.position.clone(),
+                tl = center.clone().add( {x: - this.width/2, y: -this.height/2} ).sub( center ),
+                tr = center.clone().add( {x: + this.width/2, y: -this.height/2} ).sub( center ),
+                bl = center.clone().add( {x: - this.width/2, y: this.height/2} ).sub( center ),
+                br = center.clone().add( {x: + this.width/2, y: this.height/2} ).sub( center ),
+                degree_rad = Math.PI / 180;
+
+            if ( this.angle <= 90* degree_rad ) {
+                top_most = tl.rotate( this.angle );
+                left_most = bl.rotate( this.angle );
+                bottom_most = br.rotate( this.angle );
+                right_most = tr.rotate( this.angle );
+            } else if ( this.angle <= 180* degree_rad ) {
+                top_most = bl.rotate( this.angle );
+                left_most = br.rotate( this.angle );
+                bottom_most = tr.rotate( this.angle );
+                right_most = tl.rotate( this.angle );
+            } else if ( this.angle <= 270* degree_rad ) {
+                top_most = br.rotate( this.angle );
+                left_most = tr.rotate( this.angle );
+                bottom_most = tl.rotate( this.angle );
+                right_most = bl.rotate( this.angle );
+            } else {
+                top_most = tr.rotate( this.angle );
+                left_most = tl.rotate( this.angle );
+                bottom_most = bl.rotate( this.angle );
+                right_most = br.rotate( this.angle );
+            }
+
+            top_most.add( center );
+            left_most.add( center );
+            bottom_most.add( center );
+            right_most.add( center );
+
+            this.aabb.set( left_most.x, top_most.y, right_most.x - left_most.x, bottom_most.y - top_most.y );
+
+            viva.vector.release( tl );
+            viva.vector.release( tr );
+            viva.vector.release( bl );
+            viva.vector.release( br );
+            viva.vector.release( center );
+
+        }
+    };
+
     /**
      * set body's status.
      *
@@ -295,6 +354,7 @@
         this.height = option.height;
         this.radius = option.radius;
         this.color = option.color;
+        this._updateAABB();
 
         return this;
     };
@@ -320,6 +380,7 @@
         this.radius = 0;
         // this.world = undefined;
         this.color = "fff";
+        this.uuid = -1;
 
         return this;
     };
