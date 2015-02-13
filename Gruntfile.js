@@ -39,7 +39,7 @@ module.exports = function(grunt) {
         dest: 'dist/temp/renderer.js'
       },
       behavior: {
-        src: ['src/behavior/*.js'],
+        src: ['src/behavior/*.js', 'src/behavior/behavior.js'],
         dest: 'dist/temp/behavior.js'
       },
       dist: {
@@ -73,7 +73,7 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['src/**/*.js'],
+        files: ['src/**/*.js', 'src/*',  'src/**/*' ],
         tasks: ['default'],
         options: {
           spawn: false,

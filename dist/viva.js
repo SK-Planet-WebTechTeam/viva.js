@@ -1500,30 +1500,23 @@
 
 
 
-
     /**
-     * constant acceleration like gravity
-     * @class
-     *
-     * @param {Number} ax acceleration along x-axis
-     * @param {Number} ay acceleration along y-axis
+     * @namespace
      */
-    var ConstantAccelerationbehavior = function ( ax, ay ) {
-        this.acceleration = viva.vector.create( ax, ay );
-    };
-
-    /**
-     * apply acceleration to a body
-     *
-     * @param {Object} body a Body object to which apply constant acceleration
-     */
-    ConstantAccelerationbehavior.prototype.behave = function ( body ) {
-        if ( body.status !== BODY_STATUS.NORMAL ) {
-            return;
+    var behavior = {
+        ConstantAcceleration: function ( ax, ay ) {
+            return new ConstantAccelerationbehavior( ax, ay );
+        },
+        BoundaryCollision: function ( boundary ) {
+            return new BoundaryCollisionbehavior( boundary );
+        },
+        Collision: function () {
+            return new Collisionbehavior();
         }
-        // return viva.vector.copy( this.acceleration ).scale( body.mass );
-        body.accelerate( viva.vector.copy( this.acceleration ) );
     };
+
+    viva.behavior = behavior;
+
 
 
     /**
@@ -1890,22 +1883,29 @@
         viva.vector.release( cB );
     };
 
+
     /**
-     * @namespace
+     * constant acceleration like gravity
+     * @class
+     *
+     * @param {Number} ax acceleration along x-axis
+     * @param {Number} ay acceleration along y-axis
      */
-    var behavior = {
-        ConstantAcceleration: function ( ax, ay ) {
-            return new ConstantAccelerationbehavior( ax, ay );
-        },
-        BoundaryCollision: function ( boundary ) {
-            return new BoundaryCollisionbehavior( boundary );
-        },
-        Collision: function () {
-            return new Collisionbehavior();
-        }
+    var ConstantAccelerationbehavior = function ( ax, ay ) {
+        this.acceleration = viva.vector.create( ax, ay );
     };
 
-    viva.behavior = behavior;
-
+    /**
+     * apply acceleration to a body
+     *
+     * @param {Object} body a Body object to which apply constant acceleration
+     */
+    ConstantAccelerationbehavior.prototype.behave = function ( body ) {
+        if ( body.status !== BODY_STATUS.NORMAL ) {
+            return;
+        }
+        // return viva.vector.copy( this.acceleration ).scale( body.mass );
+        body.accelerate( viva.vector.copy( this.acceleration ) );
+    };
 
 })(window);
