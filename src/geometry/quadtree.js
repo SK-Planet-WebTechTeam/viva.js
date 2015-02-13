@@ -1,20 +1,44 @@
+    /**
+     * quadtree implementation for broad-phase collision detection
+     * @constructor
+     * @param {Object} bound an AABB object
+     */
     var Quadtree = function ( bound ) {
         this.root = new QuadNode( 0, bound );
         this.bound = bound;
     };
 
+    /**
+     * insert a body to quadtree
+     * @param {Object} body a body object
+     */
     Quadtree.prototype.insert = function ( body ) {
         this.root.insert( body );
     };
 
+    /**
+     * retrieve a set of bodies which possibly engaged in collision with the given body
+     * @param {Object} body a body object
+     */
     Quadtree.prototype.retrieve = function ( body ) {
         return this.root.retrieve( body );
     };
 
+    /**
+     * clear the quadtree
+     */
     Quadtree.prototype.clear = function () {
         this.root.clear();
     };
 
+    /**
+     * Node implementation for Quadtree
+     * Each Quadnode can have exactly 4 child nodes
+     * @constructor
+     *
+     * @param level {Number} level of the node in the quadtree
+     * @param bound {Object} an AABB object which reperesents the boundary this node occupies
+     */
     var QuadNode = function ( level, bound ) {
         this.max_objects = 10;
         this.max_level = 5;
@@ -30,6 +54,9 @@
     QuadNode.BOTTOM_RIGHT = 2;
     QuadNode.BOTTOM_LEFT = 3;
 
+    /**
+     * If the number of bodies in current node exceeds max_objects, make child nodes and distribute bodies into children
+     */
     QuadNode.prototype.split = function () {
         var width = this.aabb.width/2,
             height = this.aabb.height/2,
@@ -42,6 +69,11 @@
         this.children[3] = QuadNodePool.allocate( this.level + 1, x, y + height, width, height );// new QuadNode( this.level + 1, new viva.AABB( x, y + height, width, height ) );
     };
 
+    /**
+     * Determines in which quadrant the body should go
+     *
+     * @param {Object} body a body object
+     */
     QuadNode.prototype.findIndex = function ( body ) {
         if ( !body ) {
             return;
@@ -80,6 +112,11 @@
     //             ( ( this.bottom >= body.top && this.bottom <= body.bottom ) || ( body.bottom >= this.top && body.bottom <= this.bottom ) );
     // }
 
+    /**
+     * Insert a new body to the node
+     *
+     * @param {Object} body a body object
+     */
     QuadNode.prototype.insert = function ( body ) {
         if ( this.bodies.length <= this.max_objects && this.children.length === 0 ) {
             this.bodies.push( body );
@@ -114,6 +151,11 @@
         }
     };
 
+    /**
+     * retrieve a set of bodies which possibly engaged in collision with the given body
+     *
+     * @param {Object} body a body object
+     */
     QuadNode.prototype.retrieve = function ( body ) {
         var index = this.findIndex( body ),
             result = [];
@@ -151,6 +193,9 @@
         return result;
     };
 
+    /**
+     * clear node
+     */
     QuadNode.prototype.clear = function () {
         this.bodies = [];
         this.residue = [];

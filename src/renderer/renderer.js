@@ -51,8 +51,7 @@
      */
     canvasRenderer.prototype.draw = function ( bodies ) {
         var i,
-            len = bodies.length,
-            _this = this;
+            len = bodies.length;
 
         this.ctx.strokeStyle = "#000";
         this.ctx.lineWidth = 1;
@@ -95,7 +94,6 @@
 
         if ( body.type === "rectangle" ) {
             this.ctx.rect ( Math.round( -width/2 ), Math.round( -height/2 ), width, height );
-
         } else if ( body.type === "circle" ) {
             this.ctx.arc( 0, 0, radius, 0, 2 * Math.PI, false );
         }
@@ -104,6 +102,7 @@
         this.ctx.fillStyle = body.color;
         this.ctx.fill();
         // this.ctx.stroke();
+
 
         // if ( body.angle ) {
             this.ctx.beginPath();
@@ -114,6 +113,24 @@
         // }
 
         this.ctx.restore();
+        /* AABB */
+        // this.ctx.rect ( body.aabb.x, body.aabb.y, body.aabb.width, body.aabb.height );
+        // this.ctx.stroke();
+    };
+
+    canvasRenderer.prototype.drawQuadtree = function ( tree ) {
+        var node = tree.root || tree,
+            bound = node.aabb;
+        if ( node.children.length > 0 ) {
+            this.drawQuadtree( node.children[0] );
+            this.drawQuadtree( node.children[1] );
+            this.drawQuadtree( node.children[2] );
+            this.drawQuadtree( node.children[3] );
+        }
+
+
+        this.ctx.rect( bound.x, bound.y, bound.width, bound.height );
+        this.ctx.stroke();
     };
 
     /**

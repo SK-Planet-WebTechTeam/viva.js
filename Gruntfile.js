@@ -18,13 +18,36 @@ module.exports = function(grunt) {
       }
     },
     concat: {
-      options: {
-        // separator: ';',
-        banner: "(function(window, undefined) {",
-        footer: "})(window);"
+      util: {
+        src: ['src/util/*.js'],
+        dest: 'dist/temp/util.js'
+      },
+      geometry: {
+        src: ['src/geometry/*.js'],
+        dest: 'dist/temp/geometry.js'
+      },
+      core: {
+        src: ['src/core/*.js'],
+        dest: 'dist/temp/core.js'
+      },
+      body: {
+        src: ['src/body/*.js'],
+        dest: 'dist/temp/body.js'
+      },
+      renderer: {
+        src: ['src/renderer/*.js'],
+        dest: 'dist/temp/renderer.js'
+      },
+      behavior: {
+        src: ['src/behavior/*.js'],
+        dest: 'dist/temp/behavior.js'
       },
       dist: {
-        src: ['src/util.js', 'src/viva.js', 'src/vector.js',  'src/*.js'],
+        options: {
+          banner: "(function(window, undefined) {",
+          footer: "})(window);"
+        },
+        src: ['dist/temp/util.js', 'dist/temp/core.js', 'dist/temp/geometry.js', 'dist/temp/body.js', 'dist/temp/renderer.js', 'dist/temp/behavior.js'],
         dest: 'dist/viva.js'
       }
     },
@@ -45,7 +68,8 @@ module.exports = function(grunt) {
       }
     },
     "clean": {
-      build: ["dist"]
+      build: ["dist"],
+      temp : ["dist/temp"]
     },
     watch: {
       scripts: {
@@ -66,7 +90,7 @@ module.exports = function(grunt) {
     },
     jsdoc : {
         dist : {
-            src: ['src/*.js'],
+            src: ['src/**/*.js'],
             options: {
                 destination: 'docs'
             }
@@ -84,8 +108,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-jsdoc');
 
   // Default task.
-  grunt.registerTask('default', ['clean', 'concat', 'uglify', 'jsdoc']);
-  grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'jsdoc', 'watch']);
+  grunt.registerTask('default', ['clean', 'concat', 'uglify', 'clean:temp', 'jsdoc']);
+  grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'clean:temp', 'jsdoc', 'watch']);
   grunt.registerTask('kissr', ['clean', 'concat', 'uglify', 'copy']);
   // grunt.registerTask('dev', ['clean', 'concat', 'uglify', 'watch']);
 
