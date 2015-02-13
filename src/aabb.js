@@ -26,4 +26,11 @@
         this.bottom = y + height;
     };
 
+    AABB.prototype.contains = function ( aabb ) {
+        return this.left <= aabb.left &&
+                this.right >= aabb.right &&
+                this.top <= aabb.top &&
+                this.bottom >= aabb.bottom;
+    };
+
     viva.AABB = AABB;
