@@ -98,20 +98,6 @@
         }
     };
 
-    // QuadNode.prototype._checkOverlap = function ( body, index ) {
-    //     var right, left, top, bottom;
-    //     switch ( index ) {
-    //         case 0:
-    //             left = this.aabb.x;
-    //             right = this.aabb.x + this.aabb.width/2;
-    //             top = this.aabb.y;
-    //             bottom = this.aabb.
-
-    //     }
-    //     return ( ( this.right >= body.left && this.right <= body.right ) || ( body.right >= this.left && body.right <= this.right ) ) &&
-    //             ( ( this.bottom >= body.top && this.bottom <= body.bottom ) || ( body.bottom >= this.top && body.bottom <= this.bottom ) );
-    // }
-
     /**
      * Insert a new body to the node
      *
