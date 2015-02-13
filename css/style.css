@@ -1,59 +1,61 @@
 body{
-	margin:0;
-	padding:1px;
-	overflow:hidden;
-	background: #FFB300;
-	min-height: 100%;
+    margin:0;
+    padding:1px;
+    overflow:hidden;
+    background: #FFB300;
+    min-height: 100%;
 }
 html{
-  	height: 100%;
+    height: 100%;
 }
 
 .logo {
-	font-family: Sail;
-	width:100%;
-	height:100%;
-	z-index:100;
-	position: absolute;
+    font-family: Sail;
+    top:0;
+    left:0;
+    bottom:0;
+    right:0;
+    z-index:100;
+    height: 200px;
+    margin:auto;
+    position: absolute;
 }
 
 .logo h1 {
-	width:100%;
-	text-align:center;
-	font-size: 100px;
-	color:#fff;
-	margin:0;
-	padding:0;
-	font-weight: normal;
-	position: relative;
-	top: 36%;
+    width:100%;
+    text-align:center;
+    font-size: 100px;
+    color:#fff;
+    margin:0;
+    padding:0;
+    font-weight: normal;
+    position: relative;
 }
 
 .logo p {
-	margin: 0 auto;
-	text-align: center;
-	position: relative;
-	top: 34%;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
 }
 
 .logo a {
-	text-decoration: underline;
-	color:#fff;
-	font-size: 28px;
-	text-align: center;
+    text-decoration: underline;
+    color:#fff;
+    font-size: 28px;
+    text-align: center;
 }
 
 .arrow-down {
-	border-left: 10px solid #fff;
-	border-bottom: 6px solid transparent;
-	border-top: 6px solid transparent;
-	display:inline-block;
+    border-left: 10px solid #fff;
+    border-bottom: 6px solid transparent;
+    border-top: 6px solid transparent;
+    display:inline-block;
 }
 
 .example{
-	margin: 0;
-	padding: 0;
-	position:absolute;
-	top:0;
-	left:0;
+    margin: 0;
+    padding: 0;
+    position:absolute;
+    top:0;
+    left:0;
 }
