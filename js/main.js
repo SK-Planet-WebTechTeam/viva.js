@@ -24,7 +24,7 @@ for ( var i = 0; i < len; i++ ) {
 		y: Math.random() * height,
 		radius: size /2,
 		mass: 1,
-		color: "#ffc02c",
+		color: "rgba(255,255,255,0.35)",//"#ffc02c",
 		cor: 1,
 		angle: 45 * Math.PI/180 * i
 	});
