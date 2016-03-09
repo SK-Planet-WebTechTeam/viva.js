@@ -11,6 +11,7 @@
         this.ratio = 100; // pixels/meter
         this.width = 600;
         this.height = 500;
+        this.maxDt = 24/1000;
 
         this.movingBody = null;
         this.lastStep = 0;
@@ -51,6 +52,10 @@
         var i, body,
             thisStep = now(),
             dt = ( thisStep - this.lastStep ) / 1000; // in seconds
+
+        if ( dt > this.maxDt ) {
+            dt = this.maxDt;
+        }
 
         this.lastStep = thisStep;
 
